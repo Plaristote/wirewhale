@@ -1,4 +1,5 @@
 #include "qpackettable.h"
+#include <QVariant>
 
 #define COLUMN_COUNT 7
 
@@ -62,15 +63,14 @@ int QPacketTable::columnCount(const QModelIndex&) const
 QVariant QPacketTable::data(const QModelIndex& index, int role) const
 {
   QPacket packet = packets.at(index.row());
-
   switch (role)
   {
     case RoleAlert:
       return 0;
     case RoleNumber:
-      return packet.number;
+      return QVariant::fromValue(packet.number);
     case RoleTime:
-      return packet.time;
+      return QVariant::fromValue(packet.time);
     case RoleSource:
       return packet.source;
     case RoleDestination:
@@ -78,7 +78,7 @@ QVariant QPacketTable::data(const QModelIndex& index, int role) const
     case RoleProtocol:
       return packet.protocol;
     case RoleLength:
-      return packet.length;
+      return QVariant::fromValue(packet.length);
     case RoleInformation:
       return packet.information;
   }
