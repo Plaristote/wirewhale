@@ -16,14 +16,24 @@ public:
 
 protected:
     QString getInterface(void) const { return (interface); }
-    void    setInterface(QString i)  { interface = i;      }
+    void    setInterface(QString i)
+    {
+      interface = i;
+      emit interfaceChanged();
+    }
 
 signals:
   void interfaceChanged();
+  void askedToStart();
+  void askedToPause();
 
 public slots:
   void updateInterface();
   void receivedPacket();
+
+private slots:
+  void pause();
+  void start();
 
 private:
   QPacketTable*  packetTable;

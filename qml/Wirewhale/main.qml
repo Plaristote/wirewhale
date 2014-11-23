@@ -21,7 +21,8 @@ ApplicationWindow {
       ComboBox {
         id:    interfaceItems
         model: interfaceListModel
-        onCurrentIndexChanged: packetListener.setInterface = currentText
+        onCurrentIndexChanged: packetListener.interface = currentText
+        width: 250
       }
 
       Label {
@@ -38,7 +39,12 @@ ApplicationWindow {
 
       Button {
         text: "Start"
-        onClicked: packetListener.setInterface = interfaceItems.currentText;
+        onClicked: packetListener.askedToStart()
+      }
+
+      Button {
+        text: "Pause"
+        onClicked: packetListener.askedToPause()
       }
     }
 

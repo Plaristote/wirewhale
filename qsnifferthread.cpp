@@ -10,9 +10,16 @@ QSnifferThread::QSnifferThread(QObject *parent) :
     QThread(parent)
 {
   self      = this;
-  mustStop  = false;
   interface = "enp0s25";
-  initializeSniffer();
+  sniffer   = 0;
+}
+
+void QSnifferThread::start()
+{
+  if (sniffer == 0)
+    initializeSniffer();
+  mustStop = false;
+  QThread::start();
 }
 
 void QSnifferThread::run()
@@ -20,17 +27,27 @@ void QSnifferThread::run()
   startSniffing();
 }
 
+bool QSnifferThread::isSniffing()
+{
+  if (mutex.tryLock())
+  {
+    mutex.unlock();
+    return (false);
+  }
+  return (true);
+}
+
 void QSnifferThread::changeInterface(QString interface)
 {
   this->interface = interface;
-  mustStop        =  true;
-  mutex.lock();
-  sniffer->stop_sniff();
-  delete sniffer;
-  initializeSniffer();
-  mustStop        = false;
-  mutex.unlock();
-  start();
+  if (isSniffing())
+  {
+    stopSniffing();
+    mutex.lock();
+    deleteSniffer();
+    start();
+    mutex.unlock();
+  }
 }
 
 void QSnifferThread::initializeSniffer()
@@ -45,6 +62,18 @@ void QSnifferThread::startSniffing()
   mutex.lock();
   sniffer->sniff_loop(QSnifferThread::snifferCallback);
   mutex.unlock();
+}
+
+void QSnifferThread::stopSniffing()
+{
+  mustStop = true;
+}
+
+void QSnifferThread::deleteSniffer()
+{
+  sniffer->stop_sniff();
+  delete sniffer;
+  sniffer = 0;
 }
 
 QVector<QPacket> QSnifferThread::receivedPackets()

@@ -15,17 +15,21 @@ public:
     explicit QSnifferThread(QObject *parent = 0);
 
     QVector<QPacket> receivedPackets();
+    bool             isSniffing();
 
 signals:
   void packetReceived();
 
 public slots:
+  void start();
   void startSniffing();
+  void stopSniffing();
   void changeInterface(QString interface);
 
 private:
   void            run();
   void            initializeSniffer();
+  void            deleteSniffer();
   static bool     snifferCallback(Tins::PDU&);
 
   QString                interface;

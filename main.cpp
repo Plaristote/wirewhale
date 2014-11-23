@@ -29,7 +29,6 @@ int main(int argc, char *argv[])
 
     window->show();
     packetListener->setProperty("interface", "enp0s25");
-    packetListener->interfaceChanged();
     return app.exec();
   }
   else
