@@ -15,8 +15,11 @@ void QSnifferThread::start()
 {
   if (sniffer == 0)
     initializeSniffer();
-  mustStop = false;
-  QThread::start();
+  if (sniffer != 0)
+  {
+    mustStop = false;
+    QThread::start();
+  }
 }
 
 void QSnifferThread::run()
@@ -49,9 +52,16 @@ void QSnifferThread::changeInterface(QString interface)
 
 void QSnifferThread::initializeSniffer()
 {
-  number  = 0;
-  sniffer = new Sniffer(interface.toStdString());
-  sniffer->set_timeout(5000);
+  try
+  {
+    number  = 0;
+    sniffer = new Sniffer(interface.toStdString());
+    sniffer->set_timeout(5000);
+  }
+  catch (const std::runtime_error& e)
+  {
+    emit snifferFailedToStart(QString(e.what()));
+  }
 }
 
 void QSnifferThread::startSniffing()
@@ -68,9 +78,12 @@ void QSnifferThread::stopSniffing()
 
 void QSnifferThread::deleteSniffer()
 {
-  sniffer->stop_sniff();
-  delete sniffer;
-  sniffer = 0;
+  if (sniffer != 0)
+  {
+    sniffer->stop_sniff();
+    delete sniffer;
+    sniffer = 0;
+  }
 }
 
 QVector<QPacket> QSnifferThread::receivedPackets()
@@ -137,7 +150,6 @@ bool QSnifferThread::snifferCallback(Tins::PDU& pdu)
   const IP&  ip  = pdu.rfind_pdu<IP>();
   QPacket    packet;
 
-  sniffer->set_filter("");
   packet.number      = ++(number);
   packet.time        = time(0);
   packet.source      = QString::fromStdString(ip.src_addr().to_string());

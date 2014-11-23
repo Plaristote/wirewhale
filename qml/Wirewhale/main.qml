@@ -2,11 +2,25 @@ import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Window 2.0
 import QtQuick.Layouts 1.0
+import QtQuick.Dialogs 1.2
 
 ApplicationWindow {
   title: qsTr("Wirewhale")
   width: 800
   height: 600
+
+  Connections {
+    target: packetListener
+    onSnifferErrorCatched: {
+      alertDialog.icon = StandardIcon.Critical;
+      alertDialog.text = packetListener.lastError;
+      alertDialog.open();
+    }
+  }
+
+  MessageDialog {
+    id: alertDialog
+  }
 
   ColumnLayout {
     anchors.fill: parent;
@@ -39,7 +53,7 @@ ApplicationWindow {
 
       Button {
         text: "Start"
-        onClicked: packetListener.askedToStart()
+        onClicked: packetListener.askedToStart();
       }
 
       Button {

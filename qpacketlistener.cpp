@@ -10,7 +10,8 @@ QPacketListener::QPacketListener(QPacketTable* packetTable, QObject* parent) :
   connect(this, SIGNAL(askedToStart()), this, SLOT(start()));
   connect(this, SIGNAL(askedToPause()), &snifferThread, SLOT(stopSniffing()));
   connect(this, SIGNAL(interfaceChanged()), this, SLOT(updateInterface()));
-  connect(&snifferThread, SIGNAL(packetReceived()), this, SLOT(receivedPacket()), Qt::QueuedConnection);
+  connect(&snifferThread, SIGNAL(snifferFailedToStart(QString)), this, SLOT(catchSnifferError(QString)), Qt::QueuedConnection);
+  connect(&snifferThread, SIGNAL(packetReceived()),              this, SLOT(receivedPacket()),           Qt::QueuedConnection);
 }
 
 QPacketListener::~QPacketListener()
@@ -42,4 +43,11 @@ void QPacketListener::start()
 
 void QPacketListener::pause()
 {
+}
+
+void QPacketListener::catchSnifferError(QString str)
+{
+  std::cout << "onSnifferErrorCatched " << str.toStdString() << std::endl;
+  lastError = str;
+  emit snifferErrorCatched();
 }

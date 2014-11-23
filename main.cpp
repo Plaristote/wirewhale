@@ -13,20 +13,21 @@ int main(int argc, char *argv[])
 {
   QGuiApplication       app(argc, argv);
   QQmlApplicationEngine engine;
+  QPacketTable*         packetTable    = new QPacketTable();
+  QPacketListener*      packetListener = new QPacketListener(packetTable);
+  NetworkInterfaceList  interface_list;
 
   std::cout << "Launching application" << std::endl;
+  engine.rootContext()->setContextProperty("packetListener", packetListener);
+  engine.rootContext()->setContextProperty("packetLogModel", packetTable);
+  engine.rootContext()->setContextProperty("interfaceListModel", interface_list);
   engine.load(QUrl("qml/Wirewhale/main.qml"));
   if (engine.rootObjects().size() > 0)
   {
     QQuickWindow* window = qobject_cast<QQuickWindow*>(engine.rootObjects().value(0));
-    NetworkInterfaceList interface_list;
-    QPacketTable*        packetTable    = new QPacketTable(window);
-    QPacketListener*     packetListener = new QPacketListener(packetTable, window);
 
-    engine.rootContext()->setContextProperty("packetListener", packetListener);
-    engine.rootContext()->setContextProperty("packetLogModel", packetTable);
-    engine.rootContext()->setContextProperty("interfaceListModel", interface_list);
-
+    packetTable->setParent(window);
+    packetListener->setParent(window);
     window->show();
     packetListener->setProperty("interface", "enp0s25");
     return app.exec();

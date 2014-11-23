@@ -19,6 +19,7 @@ public:
 
 signals:
   void packetReceived();
+  void snifferFailedToStart(QString);
 
 public slots:
   void start();
