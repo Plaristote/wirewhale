@@ -11,12 +11,17 @@ QML_IMPORT_PATH =
 # CONFIG += mobility
 # MOBILITY +=
 
+LIBS = -ltins
+
 CONFIG += c++11
 
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += main.cpp \
     qpackettable.cpp \
-    qpacket.cpp
+    qpacket.cpp \
+    networkinterfacelist.cpp \
+    qpacketlistener.cpp \
+    qsnifferthread.cpp
 
 # Installation path
 # target.path =
@@ -29,4 +34,7 @@ OTHER_FILES +=
 
 HEADERS += \
     qpackettable.h \
-    qpacket.h
+    qpacket.h \
+    networkinterfacelist.h \
+    qpacketlistener.h \
+    qsnifferthread.h

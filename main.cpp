@@ -5,35 +5,31 @@
 #include <QQmlContext>
 #include <QQmlProperty>
 #include "qpackettable.h"
+#include "qpacketlistener.h"
+#include "networkinterfacelist.h"
+#include <iostream>
 
 int main(int argc, char *argv[])
 {
   QGuiApplication       app(argc, argv);
   QQmlApplicationEngine engine;
 
+  std::cout << "Launching application" << std::endl;
   engine.load(QUrl("qml/Wirewhale/main.qml"));
   if (engine.rootObjects().size() > 0)
   {
     QQuickWindow* window = qobject_cast<QQuickWindow*>(engine.rootObjects().value(0));
-    QPacketTable* packet_table = new QPacketTable(window);
+    NetworkInterfaceList interface_list;
+    QPacketTable*        packetTable    = new QPacketTable(window);
+    QPacketListener*     packetListener = new QPacketListener(packetTable, window);
 
-    QPacket packet;
-    packet.alertLevel = 0;
-    packet.number = 1;
-    packet.time = 3.174783000;
-    packet.source = "208.117.250.248";
-    packet.destination = "10.42.43.11";
-    packet.protocol = "TCP";
-    packet.length = 1494;
-    packet.information = "[TCP segment of a reassembled PDU]";
-    packet_table->addPackets(QVector<QPacket>() << packet);
-    engine.rootContext()->setContextProperty("packetLogModel", packet_table);
-    QQmlProperty::write(window->findChild<QObject*>("packetLog"),
-                        "model",
-                        engine.rootContext()->contextProperty("packetLogModel"));
+    engine.rootContext()->setContextProperty("packetListener", packetListener);
+    engine.rootContext()->setContextProperty("packetLogModel", packetTable);
+    engine.rootContext()->setContextProperty("interfaceListModel", interface_list);
+
     window->show();
-    packet.number = 2;
-    packet_table->addPackets(QVector<QPacket>() << packet);
+    packetListener->setProperty("interface", "enp0s25");
+    packetListener->interfaceChanged();
     return app.exec();
   }
   else

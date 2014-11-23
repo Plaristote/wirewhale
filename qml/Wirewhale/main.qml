@@ -8,16 +8,6 @@ ApplicationWindow {
   width: 800
   height: 600
 
-  menuBar: MenuBar {
-    Menu {
-      title: qsTr("File")
-      MenuItem {
-        text: qsTr("Exit")
-        onTriggered: Qt.quit();
-      }
-    }
-  }
-
   ColumnLayout {
     anchors.fill: parent;
 
@@ -29,13 +19,9 @@ ApplicationWindow {
         font.bold: true
       }
       ComboBox {
-        model: ListModel {
-          id: cbItems
-          ListElement { text: "eth0";  }
-          ListElement { text: "eth1";  }
-          ListElement { text: "usb0";  }
-          ListElement { text: "wlan0"; }
-        }
+        id:    interfaceItems
+        model: interfaceListModel
+        onCurrentIndexChanged: packetListener.setInterface = currentText
       }
 
       Label {
@@ -43,13 +29,22 @@ ApplicationWindow {
         font.bold: true
       }
       ComboBox {
+        model: ListModel {
+          ListElement { text: "1" }
+          ListElement { text: "2" }
+          ListElement { text: "3" }
+        }
+      }
 
+      Button {
+        text: "Start"
+        onClicked: packetListener.setInterface = interfaceItems.currentText;
       }
     }
 
     TableView {
       id: packetLog
-      objectName: "packetLog"
+      model: packetLogModel
       anchors.top: toolbar.bottom
       anchors.bottom: parent.bottom
       anchors.left: parent.left

@@ -68,9 +68,9 @@ QVariant QPacketTable::data(const QModelIndex& index, int role) const
     case RoleAlert:
       return 0;
     case RoleNumber:
-      return QVariant::fromValue(packet.number);
+      return QString::number(packet.number);
     case RoleTime:
-      return QVariant::fromValue(packet.time);
+      return QString::number(packet.time);
     case RoleSource:
       return packet.source;
     case RoleDestination:
@@ -78,7 +78,7 @@ QVariant QPacketTable::data(const QModelIndex& index, int role) const
     case RoleProtocol:
       return packet.protocol;
     case RoleLength:
-      return QVariant::fromValue(packet.length);
+      return QString::number(packet.length);
     case RoleInformation:
       return packet.information;
   }
