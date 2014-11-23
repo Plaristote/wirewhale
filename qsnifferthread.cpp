@@ -107,6 +107,30 @@ QString protocol2String(u_int8_t code)
       return "ICMP";
     case Tins::PDU::ICMPv6:
       return "ICMPv6";
+    case Tins::PDU::LOOPBACK:
+      return "LOOPBACK";
+    case Tins::PDU::PPPOE:
+        return "PPPOE";
+    case Tins::PDU::SNAP:
+        return "SNAP";
+    case Tins::PDU::IP:
+        return "IP";
+    case Tins::PDU::LLC:
+        return "LLC";
+    case Tins::PDU::BOOTP:
+        return "BOOTP";
+    case Tins::PDU::EAPOL:
+        return "EAPOL";
+    case Tins::PDU::RC4EAPOL:
+        return "RC4EAPOL";
+    case Tins::PDU::RSNEAPOL:
+        return "RSNEAPOL";
+    case Tins::PDU::DNS:
+        return "DNS";
+    case Tins::PDU::SLL:
+        return "SLL";
+    case Tins::PDU::PPI:
+        return "PPI";
   }
   return ("?");
 }
