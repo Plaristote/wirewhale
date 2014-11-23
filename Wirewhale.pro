@@ -26,10 +26,6 @@ SOURCES += main.cpp \
 # Installation path
 # target.path =
 
-# Please do not modify the following two lines. Required for deployment.
-include(qtquick2applicationviewer/qtquick2applicationviewer.pri)
-qtcAddDeployment()
-
 OTHER_FILES +=
 
 HEADERS += \
