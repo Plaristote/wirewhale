@@ -11,6 +11,8 @@ QML_IMPORT_PATH =
 # CONFIG += mobility
 # MOBILITY +=
 
+QT += qml quick
+
 LIBS = -ltins
 
 CONFIG += c++11

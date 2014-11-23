@@ -4,12 +4,9 @@
 
 using namespace Tins;
 
-QSnifferThread* QSnifferThread::self = 0;
-
 QSnifferThread::QSnifferThread(QObject *parent) :
     QThread(parent)
 {
-  self      = this;
   interface = "enp0s25";
   sniffer   = 0;
 }
@@ -60,7 +57,7 @@ void QSnifferThread::initializeSniffer()
 void QSnifferThread::startSniffing()
 {
   mutex.lock();
-  sniffer->sniff_loop(QSnifferThread::snifferCallback);
+  sniffer->sniff_loop([this](Tins::PDU& pdu) -> bool { return snifferCallback(pdu); });
   mutex.unlock();
 }
 
@@ -132,24 +129,24 @@ QString protocol2String(u_int8_t code)
     case Tins::PDU::PPI:
         return "PPI";
   }
-  return ("?");
+  return (QString::number(code));
 }
 
 bool QSnifferThread::snifferCallback(Tins::PDU& pdu)
 {
   const IP&  ip  = pdu.rfind_pdu<IP>();
-  const TCP& tcp = pdu.rfind_pdu<TCP>();
   QPacket    packet;
 
-  packet.number      = ++(self->number);
+  sniffer->set_filter("");
+  packet.number      = ++(number);
   packet.time        = time(0);
   packet.source      = QString::fromStdString(ip.src_addr().to_string());
   packet.destination = QString::fromStdString(ip.dst_addr().to_string());
   packet.protocol    = protocol2String(ip.protocol());
   packet.length      = ip.size();
-  self->list_mutex.lock();
-  self->received_packets << packet;
-  self->list_mutex.unlock();
-  emit self->packetReceived();
-  return (!self->mustStop);
+  list_mutex.lock();
+  received_packets << packet;
+  list_mutex.unlock();
+  emit packetReceived();
+  return (!mustStop);
 }
