@@ -27,17 +27,16 @@ public slots:
   void changeInterface(QString interface);
 
 private:
-  void            run();
-  void            initializeSniffer();
-  void            deleteSniffer();
-  static bool     snifferCallback(Tins::PDU&);
+  void           run();
+  void           initializeSniffer();
+  void           deleteSniffer();
+  bool           snifferCallback(Tins::PDU&);
 
-  QString                interface;
-  QMutex                 mutex;
-  bool                   mustStop;
-  Tins::Sniffer*         sniffer;
-  long                   number;
-  static QSnifferThread* self;
+  QString        interface;
+  QMutex         mutex;
+  bool           mustStop;
+  Tins::Sniffer* sniffer;
+  long           number;
 
   QMutex         list_mutex;
   QList<QPacket> received_packets;
