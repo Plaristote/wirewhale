@@ -8,24 +8,17 @@ import QtQuick.Dialogs 1.2
 RowLayout {
   spacing: 6
 
-  Label {
-    text: qsTr("Interface")
-    font.bold: true
-  }
-
-  ComboBox {
-    id:    interfaceItems
+  LabelledComboBox {
+    label: qsTr("Interface")
     model: interfaceListModel
-    onCurrentIndexChanged: packetListener.interface = currentText
-    width: 250
+
+    function onCurrentTextChanged(currentText) {
+      packetListener.interface = currentText
+    }
   }
 
-  Label {
-    text: qsTr("Filter profile")
-    font.bold: true
-  }
-
-  ComboBox {
+  LabelledComboBox {
+    label: qsTr("Filter profile")
     model: ListModel {
       ListElement { text: "1" }
       ListElement { text: "2" }

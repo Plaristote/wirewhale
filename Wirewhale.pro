@@ -31,7 +31,8 @@ SOURCES += main.cpp \
 OTHER_FILES += \
     qml/Wirewhale/main.qml \
     qml/Wirewhale/PacketTable.qml \
-    qml/Wirewhale/Toolbar.qml
+    qml/Wirewhale/Toolbar.qml \
+    qml/Wirewhale/LabelledComboBox.qml
 
 HEADERS += \
     qpackettable.h \
