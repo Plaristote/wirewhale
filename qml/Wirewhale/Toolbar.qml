@@ -10,7 +10,7 @@ RowLayout {
 
   LabelledComboBox {
     label: qsTr("Interface")
-    model: interfaceListModel
+    model: wirewhale.interfaceList
 
     function onCurrentTextChanged(currentText) {
       packetListener.interface = currentText
@@ -19,27 +19,42 @@ RowLayout {
 
   LabelledComboBox {
     label: qsTr("Filter profile")
-    model: ListModel {
-      ListElement { text: "1" }
-      ListElement { text: "2" }
-      ListElement { text: "3" }
+    model: wirewhale.profileList
+
+    function onCurrentTextChanged(currentText) {
+      packetListener.filter = currentText
     }
   }
 
   Button {
-    text:      "Start"
+    text: qsTr("Edit profile")
+    onClicked: {
+      console.log("implement edit profile dialog")
+    }
+    visible: wirewhale.profileList.count > 0
+  }
+
+  Button {
+    text:      qsTr("New profile")
+    onClicked: {
+        console.log("implement new profile dialog");
+    }
+  }
+
+  Button {
+    text:      qsTr("Start")
     onClicked: packetListener.askedToStart()
     visible:   packetListener.listening != true
   }
 
   Button {
-    text:      "Pause"
+    text:      qsTr("Pause")
     onClicked: packetListener.askedToPause()
     visible:   packetListener.listening
   }
 
   Button {
-    text: "Clear"
+    text:      qsTr("Clear")
     onClicked: packetLogModel.clear()
   }
 }

@@ -13,7 +13,7 @@ QML_IMPORT_PATH =
 
 QT += qml quick
 
-LIBS = /usr/lib/libtins.dylib
+LIBS = -ltins
 
 CONFIG += c++11
 
@@ -23,7 +23,9 @@ SOURCES += main.cpp \
     qpacket.cpp \
     networkinterfacelist.cpp \
     qpacketlistener.cpp \
-    qsnifferthread.cpp
+    qsnifferthread.cpp \
+    filterprofile.cpp \
+    wirewhale.cpp
 
 # Installation path
 # target.path =
@@ -39,4 +41,6 @@ HEADERS += \
     qpacket.h \
     networkinterfacelist.h \
     qpacketlistener.h \
-    qsnifferthread.h
+    qsnifferthread.h \
+    filterprofile.h \
+    wirewhale.h
