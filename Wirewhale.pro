@@ -29,7 +29,9 @@ SOURCES += main.cpp \
 # target.path =
 
 OTHER_FILES += \
-    qml/Wirewhale/main.qml
+    qml/Wirewhale/main.qml \
+    qml/Wirewhale/PacketTable.qml \
+    qml/Wirewhale/Toolbar.qml
 
 HEADERS += \
     qpackettable.h \
