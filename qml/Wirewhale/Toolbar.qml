@@ -28,7 +28,7 @@ RowLayout {
 
   Button {
     text:      "Start"
-    onClicked: packetListener.askedToStart();
+    onClicked: packetListener.askedToStart()
     visible:   packetListener.listening != true
   }
 
@@ -36,5 +36,10 @@ RowLayout {
     text:      "Pause"
     onClicked: packetListener.askedToPause()
     visible:   packetListener.listening
+  }
+
+  Button {
+    text: "Clear"
+    onClicked: packetLogModel.clear()
   }
 }
