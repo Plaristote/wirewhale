@@ -1,7 +1,7 @@
 #include "networkinterfacelist.h"
-#include "/usr/include/tins/tins.h"
 #include <string>
 #include <set>
+#include <QNetworkInterface>
 
 using namespace std;
 
@@ -12,10 +12,8 @@ NetworkInterfaceList::NetworkInterfaceList(QObject *parent) : QStringList()
 
 void NetworkInterfaceList::appendAllInterfaces()
 {
-  const set<std::string> interfaces = Tins::Utils::network_interfaces();
-
-  for_each(interfaces.begin(), interfaces.end(), [this](string name)
+  foreach (QNetworkInterface interface, QNetworkInterface::allInterfaces())
   {
-    this->append(QString::fromStdString(name));
-  });
+    append(interface.name());
+  }
 }
