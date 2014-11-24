@@ -24,10 +24,13 @@ ApplicationWindow {
 
   ColumnLayout {
     anchors.fill: parent;
+    anchors.margins: 10
+    spacing: 10
 
     RowLayout {
       id: toolbar
-      anchors.top: parent.top;
+      spacing: 6
+      Layout.fillWidth: true
       Label {
         text: qsTr("Interface")
         font.bold: true
@@ -52,23 +55,23 @@ ApplicationWindow {
       }
 
       Button {
-        text: "Start"
+        text:      "Start"
         onClicked: packetListener.askedToStart();
+        visible:   packetListener.listening != true
       }
 
       Button {
-        text: "Pause"
+        text:      "Pause"
         onClicked: packetListener.askedToPause()
+        visible:   packetListener.listening
       }
     }
 
     TableView {
       id: packetLog
       model: packetLogModel
-      anchors.top: toolbar.bottom
-      anchors.bottom: parent.bottom
-      anchors.left: parent.left
-      anchors.right: parent.right
+      Layout.fillWidth:  true
+      Layout.fillHeight: true
 
       TableViewColumn {
         role: "alert"

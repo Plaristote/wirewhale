@@ -50,6 +50,17 @@ QPacket QPacketTable::packet(long number)
   return (*it);
 }
 
+void QPacketTable::clear()
+{
+    int count = packets.count();
+
+    beginRemoveRows(QModelIndex(), 0, count);
+    packets.clear();
+    endRemoveRows();
+    emit layoutChanged();
+    emit dataChanged(index(0, 0), index(count, COLUMN_COUNT));
+}
+
 int QPacketTable::rowCount(const QModelIndex&) const
 {
   return (packets.size());

@@ -1,5 +1,5 @@
 #include "networkinterfacelist.h"
-#include <tins/tins.h>
+#include "/usr/include/tins/tins.h"
 #include <string>
 #include <set>
 

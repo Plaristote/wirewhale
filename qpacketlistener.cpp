@@ -11,6 +11,7 @@ QPacketListener::QPacketListener(QPacketTable* packetTable, QObject* parent) :
   connect(this, SIGNAL(interfaceChanged()), this, SLOT(updateInterface()));
   connect(&snifferThread, SIGNAL(snifferFailedToStart(QString)), this, SLOT(catchSnifferError(QString)), Qt::QueuedConnection);
   connect(&snifferThread, SIGNAL(packetReceived()),              this, SLOT(receivedPacket()),           Qt::QueuedConnection);
+  connect(&snifferThread, SIGNAL(finished()),                    this, SLOT(pause()),                    Qt::QueuedConnection);
 }
 
 QPacketListener::~QPacketListener()
@@ -19,9 +20,9 @@ QPacketListener::~QPacketListener()
 
 void QPacketListener::updateInterface()
 {
-  std::cout << "Updated interface !" << std::endl;
   QString interface = property("interface").toString();
 
+  std::cout << "Updated interface to " << interface.toStdString() << std::endl;
   snifferThread.changeInterface(interface);
 }
 
@@ -35,18 +36,20 @@ void QPacketListener::receivedPacket()
 
 void QPacketListener::start()
 {
+  packetTable->clear();
   updateInterface();
   if (!snifferThread.isSniffing())
     snifferThread.start();
+  setIsListening(true);
 }
 
 void QPacketListener::pause()
 {
+  setIsListening(false);
 }
 
 void QPacketListener::catchSnifferError(QString str)
 {
-  std::cout << "onSnifferErrorCatched " << str.toStdString() << std::endl;
   lastError = str;
   emit snifferErrorCatched();
 }

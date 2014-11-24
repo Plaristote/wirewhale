@@ -37,6 +37,7 @@ signals:
   void     packetsAdded(QVector<QPacket>);
 
 public slots:
+  void     clear();
 
 protected:
   void     addPacket(QPacket);

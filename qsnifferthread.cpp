@@ -1,13 +1,16 @@
 #include "qsnifferthread.h"
 #include <qpacket.h>
 #include <iostream>
+#include "networkinterfacelist.h"
 
 using namespace Tins;
 
 QSnifferThread::QSnifferThread(QObject *parent) :
     QThread(parent)
 {
-  interface = "enp0s25";
+  NetworkInterfaceList interface_list;
+
+  interface = interface_list.first();
   sniffer   = 0;
 }
 

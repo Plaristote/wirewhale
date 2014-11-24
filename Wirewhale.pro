@@ -13,7 +13,7 @@ QML_IMPORT_PATH =
 
 QT += qml quick
 
-LIBS = -ltins
+LIBS = /usr/lib/libtins.dylib
 
 CONFIG += c++11
 
@@ -28,7 +28,8 @@ SOURCES += main.cpp \
 # Installation path
 # target.path =
 
-OTHER_FILES +=
+OTHER_FILES += \
+    qml/Wirewhale/main.qml
 
 HEADERS += \
     qpackettable.h \

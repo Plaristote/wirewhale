@@ -11,6 +11,7 @@ class QPacketListener : public QObject
     Q_OBJECT
     Q_PROPERTY(QString interface NOTIFY interfaceChanged    READ getInterface WRITE setInterface)
     Q_PROPERTY(QString lastError NOTIFY snifferErrorCatched READ getLastError)
+    Q_PROPERTY(bool    listening NOTIFY listeningChanged    READ isListening)
 public:
     explicit QPacketListener(QPacketTable* packetTable, QObject* parent = 0);
     ~QPacketListener();
@@ -26,11 +27,23 @@ protected:
 
     QString getLastError(void) const { return (lastError); }
 
+    void setIsListening(bool set)
+    {
+      if (listening != set)
+      {
+        listening = set;
+        emit listeningChanged();
+      }
+    }
+
+    bool isListening(void) const { return (listening); }
+
 signals:
   void interfaceChanged();
   void askedToStart();
   void askedToPause();
   void snifferErrorCatched();
+  void listeningChanged();
 
 public slots:
   void updateInterface();
@@ -44,6 +57,7 @@ private:
   QPacketTable*  packetTable;
   QString        interface, lastError;
   long           number;
+  bool           listening;
   QSnifferThread snifferThread;
 };
 

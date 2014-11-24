@@ -3,7 +3,7 @@
 
 #include <QThread>
 #include <QMutex>
-#include <tins/tins.h>
+#include "/usr/include/tins/tins.h"
 #include <qpacket.h>
 #include <QList>
 #include <QVector>
