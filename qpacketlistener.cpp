@@ -1,5 +1,4 @@
 #include "qpacketlistener.h"
-#include <tins/tins.h>
 #include <ctime>
 #include <iostream>
 using namespace Tins;
