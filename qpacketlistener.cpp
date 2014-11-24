@@ -52,4 +52,5 @@ void QPacketListener::catchSnifferError(QString str)
 {
   lastError = str;
   emit snifferErrorCatched();
+  setIsListening(false);
 }
