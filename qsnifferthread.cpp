@@ -3,10 +3,7 @@
 #include <iostream>
 #include "networkinterfacelist.h"
 
-using namespace Tins;
-
-QSnifferThread::QSnifferThread(QObject *parent) :
-    QThread(parent)
+QSnifferThread::QSnifferThread(QObject *parent) : QThread(parent)
 {
   NetworkInterfaceList interface_list;
 
@@ -58,8 +55,7 @@ void QSnifferThread::initializeSniffer()
   try
   {
     number  = 0;
-    sniffer = new Sniffer(interface.toStdString());
-    sniffer->set_timeout(5000);
+    sniffer = new QPacketSniffer(interface, this);
   }
   catch (const std::runtime_error& e)
   {
@@ -70,7 +66,10 @@ void QSnifferThread::initializeSniffer()
 void QSnifferThread::startSniffing()
 {
   mutex.lock();
-  sniffer->sniff_loop([this](Tins::PDU& pdu) -> bool { return snifferCallback(pdu); });
+  do
+  {
+    sniffer->run();
+  } while (!mustStop);
   mutex.unlock();
 }
 
@@ -83,7 +82,6 @@ void QSnifferThread::deleteSniffer()
 {
   if (sniffer != 0)
   {
-    sniffer->stop_sniff();
     delete sniffer;
     sniffer = 0;
   }
@@ -98,70 +96,4 @@ QVector<QPacket> QSnifferThread::receivedPackets()
   received_packets.clear();
   list_mutex.unlock();
   return (copy);
-}
-
-QString protocol2String(u_int8_t code)
-{
-  switch (code)
-  {
-    case Tins::PDU::TCP:
-      return "TCP";
-    case Tins::PDU::UDP:
-      return "UDP";
-    case Tins::PDU::STP:
-      return "STP";
-    case Tins::PDU::DHCP:
-      return "DHCP";
-    case Tins::PDU::DHCPv6:
-      return "DHCPv6";
-    case Tins::PDU::ARP:
-      return "ARP";
-    case Tins::PDU::ICMP:
-      return "ICMP";
-    case Tins::PDU::ICMPv6:
-      return "ICMPv6";
-    case Tins::PDU::LOOPBACK:
-      return "LOOPBACK";
-    case Tins::PDU::PPPOE:
-        return "PPPOE";
-    case Tins::PDU::SNAP:
-        return "SNAP";
-    case Tins::PDU::IP:
-        return "IP";
-    case Tins::PDU::LLC:
-        return "LLC";
-    case Tins::PDU::BOOTP:
-        return "BOOTP";
-    case Tins::PDU::EAPOL:
-        return "EAPOL";
-    case Tins::PDU::RC4EAPOL:
-        return "RC4EAPOL";
-    case Tins::PDU::RSNEAPOL:
-        return "RSNEAPOL";
-    case Tins::PDU::DNS:
-        return "DNS";
-    case Tins::PDU::SLL:
-        return "SLL";
-    case Tins::PDU::PPI:
-        return "PPI";
-  }
-  return (QString::number(code));
-}
-
-bool QSnifferThread::snifferCallback(Tins::PDU& pdu)
-{
-  const IP&  ip  = pdu.rfind_pdu<IP>();
-  QPacket    packet;
-
-  packet.number      = ++(number);
-  packet.time        = time(0);
-  packet.source      = QString::fromStdString(ip.src_addr().to_string());
-  packet.destination = QString::fromStdString(ip.dst_addr().to_string());
-  packet.protocol    = protocol2String(ip.protocol());
-  packet.length      = ip.size();
-  list_mutex.lock();
-  received_packets << packet;
-  list_mutex.unlock();
-  emit packetReceived();
-  return (!mustStop);
 }

@@ -1,6 +1,7 @@
 #ifndef  LINUX_QPACKET_SNIFFER_H
 # define LINUX_QPACKET_SNIFFER_H
 
+# include "qabstractpacketsniffer.h"
 # include <sys/socket.h>
 
 class QPacketSniffer : public QAbstractPacketSniffer
@@ -10,6 +11,8 @@ class QPacketSniffer : public QAbstractPacketSniffer
 public:
     QPacketSniffer(const QString& interface_name, QObject* parent = 0);
     ~QPacketSniffer();
+
+    void run();
 
 private:
     void initialize_interface();

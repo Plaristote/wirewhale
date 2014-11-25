@@ -1,6 +1,6 @@
 #include "qabstractpacketsniffer.h"
 
-QAbstractPacketSniffer::QAbstractPacketSniffer(QObject *parent) :
-    QObject(parent)
+QAbstractPacketSniffer::QAbstractPacketSniffer(const QString& interface_name, QObject *parent) :
+    QObject(parent), interface_name(interface_name)
 {
 }

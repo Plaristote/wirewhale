@@ -1,6 +1,6 @@
 #include "qpacketsniffer.h"
 
-QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(parent), interface_name(interface_name)
+QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
   sock == ::socket(PF_PACKET, SOCK_RAW, htos(ETH_P_ALL));
   initialize_interface();
@@ -27,4 +27,8 @@ void QPacketSniffer::initialize_sock_address()
   sock_address.sll_family = AF_PACKET;
   sock_address.ifindex    = interface.ifr_ifindex;
   sock_address.protocol   = htons(ETH_P_ALL);
+}
+
+void QPacketSniffer::run()
+{
 }

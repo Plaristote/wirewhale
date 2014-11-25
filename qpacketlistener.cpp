@@ -1,7 +1,6 @@
 #include "qpacketlistener.h"
 #include <ctime>
 #include <iostream>
-using namespace Tins;
 
 QPacketListener::QPacketListener(QPacketTable* packetTable, QObject* parent) :
     QObject(parent), packetTable(packetTable)
