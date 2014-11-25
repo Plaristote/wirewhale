@@ -56,6 +56,7 @@ void QSnifferThread::initializeSniffer()
   {
     number  = 0;
     sniffer = new QPacketSniffer(interface, this);
+    connect(sniffer, SIGNAL(packetsReceived()), this, SIGNAL(packetReceived()));
   }
   catch (const std::runtime_error& e)
   {
@@ -88,11 +89,7 @@ void QSnifferThread::deleteSniffer()
 
 QVector<QPacket> QSnifferThread::receivedPackets()
 {
-  QVector<QPacket> copy;
+  QVector<QPacket> pending_packets;
 
-  list_mutex.lock();
-  copy = received_packets.toVector();
-  received_packets.clear();
-  list_mutex.unlock();
-  return (copy);
+  return (sniffer->pullPendingPackets(pending_packets));
 }

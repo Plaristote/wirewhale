@@ -55,15 +55,15 @@ public:
     void stop();
     void wait();
 
+    static size_t packet_offset_ip_header();
+    static size_t packet_offset_xcp_header();
+
 private:
     uint16_t get_protocol() const;
     void     initialize_interface();
     void     initialize_sock_address();
     void     initialize_poll();
     void     capture_packet();
-
-    static size_t packet_offset_ip_header();
-    static size_t packet_offset_xcp_header();
 
     int                sock;
     Interface          interface;

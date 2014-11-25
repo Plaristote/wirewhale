@@ -2,6 +2,10 @@
 #define QABSTRACTPACKETSNIFFER_H
 
 #include <QObject>
+#include <QMutex>
+#include <QVector>
+#include <QList>
+#include "qpacket.h"
 
 class QAbstractPacketSniffer : public QObject
 {
@@ -15,12 +19,17 @@ public:
     virtual void run(void) = 0;
     virtual void stop(void) {}
 
+    QVector<QPacket> pullPendingPackets(QVector<QPacket> list);
 signals:
+    void packetsReceived();
 
 public slots:
 
 protected:
-    QString interface_name;
+    QString        interface_name;
+    QList<QPacket> pending_packets;
+    QMutex         pending_packets_mutex;
+    short          max_captured_packets;
 };
 
 #endif // QABSTRACTPACKETSNIFFER_H

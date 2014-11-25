@@ -149,39 +149,163 @@ void QPacketSniffer::stop()
   must_stop = true;
 }
 
+struct Packet
+{
+  Packet()
+  {
+    memset(buffer, 0, sizeof(buffer));
+    eth = (struct ether_header*)buffer;
+    ip  = (struct iphdr*)(buffer + QPacketSniffer::packet_offset_ip_header());
+    //struct tcphdr*       tcp = (struct tcphdr*)(packet + packet_offset_xcp_header());
+  }
+
+  enum EtherType
+  {
+    ETHER_TYPE_UNKNOWN = 0,
+    IPv4 = 0x0800,
+    IPv6 = 0x86DD,
+    ARP  = 0x0806
+  };
+
+  bool has_supported_type()
+  {
+    switch (get_ether_type())
+    {
+      case IPv4:
+      case IPv6:
+      case ARP:
+          return (true);
+    }
+    return (false);
+  }
+
+  EtherType get_ether_type(void) const
+  {
+    return (EtherType)(ntohs(eth->ether_type));
+  }
+
+  QString get_source_ip(void) const
+  {
+    switch (get_ether_type())
+    {
+    case IPv4:
+      return (get_source_ipv4());
+    case IPv6:
+      return (get_source_ipv6());
+    default:
+      break ;
+    }
+    return ("");
+  }
+
+  QString get_destination_ip(void) const
+  {
+    switch (get_ether_type())
+    {
+    case IPv4:
+      return (get_destination_ipv4());
+    case IPv6:
+      return (get_destination_ipv6());
+    default:
+      break ;
+    }
+    return "";
+  }
+
+  QString get_protocol(void) const
+  {
+    switch (ip->protocol)
+    {
+    case IPPROTO_TCP:
+      return "tcp";
+    case IPPROTO_UDP:
+      return "udp";
+    case IPPROTO_ICMP:
+      return "icmp";
+    case IPPROTO_IGMP:
+      return "igmp";
+    case IPPROTO_RSVP:
+      return "rsvp";
+    case IPPROTO_SCTP:
+      return "sctp";
+    case IPPROTO_DCCP:
+      return "dccp";
+    case IPPROTO_ESP:
+      return "esp";
+    case IPPROTO_AH:
+      return "ah";
+    default:
+      break ;
+    }
+    return "?";
+  }
+
+  char                 buffer[65535];
+  struct ether_header* eth;
+  struct iphdr*        ip;
+
+private:
+  QString get_source_ipv6(void) const
+  {
+      return ("");
+  }
+
+  QString get_destination_ipv6(void) const
+  {
+      return ("");
+  }
+
+  QString get_source_ipv4(void) const
+  {
+    char ip_string[16];
+
+    inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
+    return (ip_string);
+  }
+
+  QString get_destination_ipv4(void) const
+  {
+    char ip_string[16];
+
+    inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
+    return (ip_string);
+  }
+};
+
 void QPacketSniffer::capture_packet()
 {
-  std::cout << "received packets" << std::endl;
-  /*std::cout << "CAPTURED PACKET" << std::endl;
-  int     packetSize = 65535;
-  char    packet[packetSize];
+  Packet  packet;
+  int     k;
+  int     n_packet_read = 0;
 
-  struct ether_header* eth = (struct ether_header*)packet;
-  struct iphdr*        ip  = (struct iphdr*)(packet + packet_offset_ip_header());
-  //struct tcphdr*       tcp = (struct tcphdr*)(packet + packet_offset_xcp_header());
-
-  QPacket qpacket;
-  int k;
+  pending_packets_mutex.lock();
   do
   {
-    k = read(sock, packet, sizeof(packet));
-    if (k > 0 && ntohs(eth->ether_type) == 0x0800)
+    k = read(sock, packet.buffer, sizeof(packet.buffer));
+    if (packet.has_supported_type())
     {
-      char ip_string[16];
+      QPacket qpacket;
+      bool    is_first_received_packet = pending_packets.count() == 0;
 
-      inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
-      qpacket.source      = ip_string;
-      inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
-      qpacket.destination = ip_string;
-
-      switch (ip->protocol)
+      switch (packet.get_ether_type())
       {
-      default:
-        break ;
+      case Packet::IPv4:
+          qpacket.ethernet_type = QPacket::IPv4;
+      case Packet::IPv6:
+          qpacket.ethernet_type = QPacket::IPv6;
+      case Packet::ARP:
+          qpacket.ethernet_type = QPacket::ARP;
       }
+      qpacket.source      = packet.get_source_ip();
+      qpacket.destination = packet.get_destination_ip();
+      qpacket.protocol    = packet.get_protocol();
+      pending_packets << qpacket;
+      if (is_first_received_packet)
+        emit packetsReceived();
     }
-  } while (k);
-  std::cout << "DONE WITH PACKET CAPTURE" << std::endl;*/
+    n_packet_read++;
+  } while (k > 0 && n_packet_read < max_captured_packets);
+  pending_packets_mutex.unlock();
 }
 
 size_t QPacketSniffer::packet_offset_ip_header()
