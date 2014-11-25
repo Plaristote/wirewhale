@@ -9,6 +9,9 @@
 # include <linux/if_packet.h>
 # include <sys/epoll.h>
 
+# include <QMutex>
+# include <QThread>
+
 class QPacketSniffer : public QAbstractPacketSniffer
 {
     Q_OBJECT
@@ -47,12 +50,13 @@ private:
     static size_t packet_offset_ip_header();
     static size_t packet_offset_xcp_header();
 
-    QString            interface_name;
     int                sock;
     struct ifreq       interface;
     struct sockaddr_ll sock_address;
     Poll               poll;
     bool               must_stop;
+    QMutex             mutex;
+    Qt::HANDLE         sniffing_thread;
 };
 
 #endif

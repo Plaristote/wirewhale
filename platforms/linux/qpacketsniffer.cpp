@@ -8,6 +8,7 @@
 #include <stropts.h>
 #include <string.h>
 #include "qpacket.h"
+#include <iostream>
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
@@ -25,6 +26,7 @@ QPacketSniffer::~QPacketSniffer()
 
 void QPacketSniffer::initialize_interface()
 {
+    std::cout << "QPacketSniffer(" << interface_name.toStdString() << ")" << std::endl;
   memset(&interface, 0, sizeof(interface));
   strncpy(interface_name.toUtf8().data(), interface.ifr_name, 16);
   if ((ioctl(sock, SIOGIFINDEX, &interface)) == -1)
@@ -78,14 +80,22 @@ uint16_t QPacketSniffer::get_protocol() const
 
 void QPacketSniffer::run()
 {
-  must_stop = false;
+  mutex.lock();
+  sniffing_thread = QThread::currentThreadId();
+  must_stop       = false;
   while (!must_stop)
     poll.run();
+  mutex.unlock();
 }
 
 void QPacketSniffer::stop()
 {
   must_stop = true;
+  if (sniffing_thread != QThread::currentThreadId())
+  {
+    mutex.lock(); // Joining thread
+    mutex.unlock();
+  }
 }
 
 void QPacketSniffer::capture_packet()

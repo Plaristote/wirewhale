@@ -66,10 +66,7 @@ void QSnifferThread::initializeSniffer()
 void QSnifferThread::startSniffing()
 {
   mutex.lock();
-  do
-  {
-    sniffer->run();
-  } while (!mustStop);
+  sniffer->run();
   mutex.unlock();
 }
 
