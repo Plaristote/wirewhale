@@ -7,6 +7,8 @@ import QtQuick.Dialogs 1.2
 
 RowLayout {
   spacing: 6
+  anchors.left: parent.left
+  anchors.right: parent.right
 
   LabelledComboBox {
     label: qsTr("Interface")
@@ -27,8 +29,8 @@ RowLayout {
   }
 
   Button {
-    text: qsTr("Edit profile")
     onClicked: {
+    text: qsTr("Edit profile")
       console.log("implement edit profile dialog")
     }
     visible: wirewhale.profileList.count > 0
@@ -54,7 +56,8 @@ RowLayout {
   }
 
   Button {
-    text:      qsTr("Clear")
-    onClicked: packetLogModel.clear()
+    anchors.right: parent.right
+    text:          qsTr("Clear")
+    onClicked:     packetLogModel.clear()
   }
 }
