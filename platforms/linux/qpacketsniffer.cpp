@@ -32,3 +32,45 @@ void QPacketSniffer::initialize_sock_address()
 void QPacketSniffer::run()
 {
 }
+
+void QPacketSniffer::capture_packet()
+{
+  int     packetSize = 65535;
+  char    packet[packetSize];
+
+  struct ether_header* eth = (struct ether_header*)packet;
+  struct iphdr*        ip  = (struct iphdr*)(packet + packet_offset_ip_header());
+  //struct tcphdr*       tcp = (struct tcphdr*)(packet + packet_offset_xcp_header());
+
+  QPacket qpacket;
+  int k;
+  do
+  {
+    k = read(sock, packet, sizeof(packet));
+    if (k > 0 && ntohs(eth->ether_type) == 0x0800)
+    {
+      char ip_string[16];
+
+      inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
+      qpacket.source      = ip_string;
+      inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
+      qpacket.destination = ip_string;
+
+      switch (ip->protocol)
+      {
+      default:
+        break ;
+      }
+    }
+  } while (k);
+}
+
+size_t QPacketSniffer::packet_offset_ip_header()
+{
+  return sizeof(ether_header);
+}
+
+size_t QPacketSniffer::packet_offset_xcp_header()
+{
+  return packet_offset_ip_header() + sizeof(struct iphdr);
+}
