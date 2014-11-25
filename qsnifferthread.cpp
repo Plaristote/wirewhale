@@ -82,6 +82,7 @@ void QSnifferThread::deleteSniffer()
 {
   if (sniffer != 0)
   {
+    sniffer->stop();
     delete sniffer;
     sniffer = 0;
   }

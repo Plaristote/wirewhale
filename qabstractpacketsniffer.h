@@ -13,6 +13,7 @@ public:
     const QString& getInterfaceName(void) { return (interface_name); }
 
     virtual void run(void) = 0;
+    virtual void stop(void) {}
 
 signals:
 

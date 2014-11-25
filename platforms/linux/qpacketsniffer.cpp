@@ -2,7 +2,8 @@
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
-  sock = ::socket(PF_PACKET, SOCK_RAW, get_protocol());
+  must_stop = false;
+  sock      = ::socket(PF_PACKET, SOCK_RAW, get_protocol());
   initialize_interface();
   initialize_sock_address();
   bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
@@ -11,6 +12,7 @@ QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
 QPacketSniffer::~QPacketSniffer()
 {
   close(sock);
+  close(efd);
 }
 
 void QPacketSniffer::initialize_interface()
@@ -29,6 +31,39 @@ void QPacketSniffer::initialize_sock_address()
   sock_address.protocol   = get_protocol();
 }
 
+QPacketSniffer::Poll::Poll()
+{
+  efd = epoll_create1(0);
+  if (efd == -1)
+    throw std::runtime_error("cannot initialize epoll");
+  max_events = 128;
+  events     = new struct epoll_event[max_events];
+}
+
+QPacketSniffer::Poll::~Poll()
+{
+  delete[] events;
+}
+
+void QPacketSniffer::Poll::watch(int fd)
+{
+  struct epoll event;
+
+  event.data.fd = fd;
+  event.events  = EPOLLIN | EPOLLET;
+  epoll_ctl(efd, EPOLL_CTL_ADD, sock, &event);
+}
+
+void QPacketSniffer::Poll::run()
+{
+  int n_events = epoll_wait(efd, events, max_events, -1);
+
+  for (int i = 0 ; i < n_events ; ++i)
+  {
+    ;
+  }
+}
+
 uint16_t QPacketSniffer::get_protocol() const
 {
   return (htons(ETH_P_ALL));
@@ -36,6 +71,14 @@ uint16_t QPacketSniffer::get_protocol() const
 
 void QPacketSniffer::run()
 {
+  must_stop = false;
+  while (!must_stop)
+    poll.run();
+}
+
+void QPacketSniffer::stop()
+{
+  must_stop = true;
 }
 
 void QPacketSniffer::capture_packet()

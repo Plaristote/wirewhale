@@ -8,16 +8,32 @@ class QPacketSniffer : public QAbstractPacketSniffer
 {
     Q_OBJECT
 
+    class Poll
+    {
+    public:
+      Poll();
+      ~Poll();
+
+      void watch(int fd);
+      void run();
+    private:
+      int                 efd;
+      unsigned int        max_events;
+      struct epoll_event* events;
+    };
+
 public:
     QPacketSniffer(const QString& interface_name, QObject* parent = 0);
     ~QPacketSniffer();
 
     void run();
+    void stop();
 
 private:
     uint16_t get_protocol() const;
     void     initialize_interface();
     void     initialize_sock_address();
+    void     initialize_poll();
     void     capture_packet();
 
     static size_t packet_offset_ip_header();
@@ -27,6 +43,8 @@ private:
     int                sock;
     struct ifreq       interface;
     struct sockaddr_ll sock_address;
+    Poll               poll;
+    bool               must_stop;
 };
 
 #endif
