@@ -6,13 +6,14 @@ import QtQuick.Layouts 1.0
 import QtQuick.Dialogs 1.2
 
 RowLayout {
-  spacing: 6
-  anchors.left: parent.left
+  spacing:       6
+  anchors.left:  parent.left
   anchors.right: parent.right
 
   LabelledComboBox {
-    label: qsTr("Interface")
-    model: wirewhale.interfaceList
+    label:    qsTr("Interface")
+    model:    wirewhale.interfaceList
+    minWidth: 125
 
     function onCurrentTextChanged(currentText) {
       packetListener.interface = currentText
@@ -20,8 +21,9 @@ RowLayout {
   }
 
   LabelledComboBox {
-    label: qsTr("Filter profile")
-    model: wirewhale.profileList
+    label:    qsTr("Filter profile")
+    model:    wirewhale.profileList
+    minWidth: 200
 
     function onCurrentTextChanged(currentText) {
       packetListener.filter = currentText

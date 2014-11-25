@@ -5,6 +5,7 @@ import QtQuick.Controls 1.0
 RowLayout {
     property string label: 'label'
     property var    model
+    property real   minWidth: 200
 
     spacing: parent.spacing
 
@@ -12,6 +13,7 @@ RowLayout {
     }
 
     Label {
+      id: labelObject
       text: parent.label
       font.bold: true
     }
@@ -19,5 +21,6 @@ RowLayout {
     ComboBox {
       model: parent.model
       onCurrentIndexChanged: parent.onCurrentTextChanged(currentText)
+      Layout.minimumWidth: parent.minWidth - labelObject.width
     }
 }
