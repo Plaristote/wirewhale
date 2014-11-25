@@ -6,6 +6,7 @@ QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
   initialize_interface();
   initialize_sock_address();
   bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
+  on_event  = [this](int) { capture_packet(); };
 }
 
 QPacketSniffer::~QPacketSniffer()
@@ -58,9 +59,7 @@ void QPacketSniffer::Poll::run()
   int n_events = epoll_wait(efd, events, max_events, -1);
 
   for (int i = 0 ; i < n_events ; ++i)
-  {
-    ;
-  }
+    on_event(events[i].data.fd);
 }
 
 uint16_t QPacketSniffer::get_protocol() const

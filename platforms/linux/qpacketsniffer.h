@@ -3,6 +3,7 @@
 
 # include "qabstractpacketsniffer.h"
 # include <sys/socket.h>
+# include <functional>
 
 class QPacketSniffer : public QAbstractPacketSniffer
 {
@@ -16,6 +17,9 @@ class QPacketSniffer : public QAbstractPacketSniffer
 
       void watch(int fd);
       void run();
+
+      std::function<void (int fd)> on_event;
+
     private:
       int                 efd;
       unsigned int        max_events;
