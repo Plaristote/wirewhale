@@ -33,7 +33,7 @@ void QPacketSniffer::Interface::enable_promiscuous_mode(int fd)
 {
   if (!(data.ifr_flags & IFF_PROMISC))
   {
-    data.ifr_flags |= ~IFF_PROMISC;
+    data.ifr_flags |= IFF_PROMISC;
     if ((ioctl(fd, SIOCSIFFLAGS, &data)) == -1)
       raise("cannot enable promiscuous mode");
   }
@@ -151,6 +151,7 @@ void QPacketSniffer::stop()
 
 void QPacketSniffer::capture_packet()
 {
+  std::cout << "received packets" << std::endl;
   /*std::cout << "CAPTURED PACKET" << std::endl;
   int     packetSize = 65535;
   char    packet[packetSize];
