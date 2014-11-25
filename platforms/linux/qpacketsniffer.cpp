@@ -2,7 +2,7 @@
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
-  sock = ::socket(PF_PACKET, SOCK_RAW, htos(ETH_P_ALL));
+  sock = ::socket(PF_PACKET, SOCK_RAW, get_protocol());
   initialize_interface();
   initialize_sock_address();
   bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
@@ -26,7 +26,12 @@ void QPacketSniffer::initialize_sock_address()
   memset(&sock_address, 0, sizeof(sock_address));
   sock_address.sll_family = AF_PACKET;
   sock_address.ifindex    = interface.ifr_ifindex;
-  sock_address.protocol   = htons(ETH_P_ALL);
+  sock_address.protocol   = get_protocol();
+}
+
+uint16_t QPacketSniffer::get_protocol() const
+{
+  return (htons(ETH_P_ALL));
 }
 
 void QPacketSniffer::run()
