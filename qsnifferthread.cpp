@@ -72,7 +72,7 @@ void QSnifferThread::startSniffing()
 
 void QSnifferThread::stopSniffing()
 {
-  mustStop = true;
+  sniffer->stop();
 }
 
 void QSnifferThread::deleteSniffer()
@@ -80,6 +80,7 @@ void QSnifferThread::deleteSniffer()
   if (sniffer != 0)
   {
     sniffer->stop();
+    sniffer->wait();
     delete sniffer;
     sniffer = 0;
   }

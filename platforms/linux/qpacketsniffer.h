@@ -39,6 +39,7 @@ public:
 
     void run();
     void stop();
+    void wait();
 
 private:
     uint16_t get_protocol() const;

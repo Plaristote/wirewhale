@@ -92,14 +92,18 @@ void QPacketSniffer::run()
   mutex.unlock();
 }
 
+void QPacketSniffer::wait()
+{
+  if (sniffing_thread != QThread::currentThreadId())
+  {
+    mutex.lock();
+    mutex.unlock();
+  }
+}
+
 void QPacketSniffer::stop()
 {
   must_stop = true;
-  if (sniffing_thread != QThread::currentThreadId())
-  {
-    mutex.lock(); // Joining thread
-    mutex.unlock();
-  }
 }
 
 void QPacketSniffer::capture_packet()
