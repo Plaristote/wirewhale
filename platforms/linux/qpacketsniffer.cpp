@@ -1,4 +1,13 @@
 #include "qpacketsniffer.h"
+#include <unistd.h>
+#include <linux/sockios.h>
+#include <linux/if_ether.h>
+#include <netinet/ether.h>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#include <stropts.h>
+#include <string.h>
+#include "qpacket.h"
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
@@ -6,7 +15,7 @@ QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
   initialize_interface();
   initialize_sock_address();
   bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
-  on_event  = [this](int) { capture_packet(); };
+  poll.on_event  = [this](int) { capture_packet(); };
 }
 
 QPacketSniffer::~QPacketSniffer()
@@ -17,7 +26,7 @@ QPacketSniffer::~QPacketSniffer()
 void QPacketSniffer::initialize_interface()
 {
   memset(&interface, 0, sizeof(interface));
-  ifr.ifr_name = interface_name;
+  strncpy(interface_name.toUtf8().data(), interface.ifr_name, 16);
   if ((ioctl(sock, SIOGIFINDEX, &interface)) == -1)
     throw std::runtime_error("cannot initialize interface " + interface_name.toStdString());
 }
@@ -25,9 +34,9 @@ void QPacketSniffer::initialize_interface()
 void QPacketSniffer::initialize_sock_address()
 {
   memset(&sock_address, 0, sizeof(sock_address));
-  sock_address.sll_family = AF_PACKET;
-  sock_address.ifindex    = interface.ifr_ifindex;
-  sock_address.protocol   = get_protocol();
+  sock_address.sll_family   = AF_PACKET;
+  sock_address.sll_ifindex  = interface.ifr_ifindex;
+  sock_address.sll_protocol = get_protocol();
 }
 
 QPacketSniffer::Poll::Poll()
@@ -47,11 +56,11 @@ QPacketSniffer::Poll::~Poll()
 
 void QPacketSniffer::Poll::watch(int fd)
 {
-  struct epoll event;
+  struct epoll_event event;
 
   event.data.fd = fd;
   event.events  = EPOLLIN | EPOLLET;
-  epoll_ctl(efd, EPOLL_CTL_ADD, sock, &event);
+  epoll_ctl(efd, EPOLL_CTL_ADD, fd, &event);
 }
 
 void QPacketSniffer::Poll::run()

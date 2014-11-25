@@ -5,6 +5,10 @@
 # include <sys/socket.h>
 # include <functional>
 
+# include <linux/if.h>
+# include <linux/if_packet.h>
+# include <sys/epoll.h>
+
 class QPacketSniffer : public QAbstractPacketSniffer
 {
     Q_OBJECT
