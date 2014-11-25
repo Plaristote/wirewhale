@@ -2,7 +2,6 @@
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
-  must_stop = false;
   sock      = ::socket(PF_PACKET, SOCK_RAW, get_protocol());
   initialize_interface();
   initialize_sock_address();
@@ -12,7 +11,6 @@ QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
 QPacketSniffer::~QPacketSniffer()
 {
   close(sock);
-  close(efd);
 }
 
 void QPacketSniffer::initialize_interface()
@@ -42,6 +40,7 @@ QPacketSniffer::Poll::Poll()
 
 QPacketSniffer::Poll::~Poll()
 {
+  close(efd);
   delete[] events;
 }
 
