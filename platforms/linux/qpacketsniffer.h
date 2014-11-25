@@ -33,6 +33,20 @@ class QPacketSniffer : public QAbstractPacketSniffer
       struct epoll_event* events;
     };
 
+    struct Interface
+    {
+      Interface(const QString& name);
+      ~Interface();
+
+      void initialize_if_index(int fd);
+      void enable_promiscuous_mode(int fd);
+      void disable_promiscuous_mode(int fd);
+
+      struct ifreq data;
+    private:
+      void raise(const QString& message);
+    };
+
 public:
     QPacketSniffer(const QString& interface_name, QObject* parent = 0);
     ~QPacketSniffer();
@@ -52,7 +66,7 @@ private:
     static size_t packet_offset_xcp_header();
 
     int                sock;
-    struct ifreq       interface;
+    Interface          interface;
     struct sockaddr_ll sock_address;
     Poll               poll;
     bool               must_stop;

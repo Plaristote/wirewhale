@@ -11,36 +11,80 @@
 #include <iostream>
 #include <errno.h>
 
-QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
+QPacketSniffer::Interface::Interface(const QString &name)
+{
+  int name_length = name.length() > IFNAMSIZ - 1 ? IFNAMSIZ - 1 : name.length();
+
+  memset(&data, 0, sizeof(data));
+  strncpy(data.ifr_name, name.toUtf8().data(), name_length);
+}
+
+QPacketSniffer::Interface::~Interface()
+{
+}
+
+void QPacketSniffer::Interface::initialize_if_index(int fd)
+{
+  if ((ioctl(fd, SIOGIFINDEX, &data)) == -1)
+    raise("cannot initialize interface");
+}
+
+void QPacketSniffer::Interface::enable_promiscuous_mode(int fd)
+{
+  if (!(data.ifr_flags & IFF_PROMISC))
+  {
+    data.ifr_flags |= ~IFF_PROMISC;
+    if ((ioctl(fd, SIOCSIFFLAGS, &data)) == -1)
+      raise("cannot enable promiscuous mode");
+  }
+}
+
+void QPacketSniffer::Interface::disable_promiscuous_mode(int fd)
+{
+  if (data.ifr_flags & IFF_PROMISC)
+  {
+    data.ifr_flags &= ~IFF_PROMISC;
+    if ((ioctl(fd, SIOCSIFFLAGS, &data)) == -1)
+      raise("cannot disable promiscuous mode");
+  }
+}
+
+void QPacketSniffer::Interface::raise(const QString &message)
+{
+    QString full_message = message + " for interface '" + QString(data.ifr_name) + "': " + QString(strerror(errno));
+
+    throw std::runtime_error(full_message.toUtf8().data());
+}
+
+QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
+    QAbstractPacketSniffer(interface_name, parent),
+    interface(interface_name)
 {
   sock      = ::socket(PF_PACKET, SOCK_RAW, get_protocol());
   initialize_interface();
   initialize_sock_address();
   bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
   poll.on_event  = [this](int) { capture_packet(); };
+  poll.watch(sock);
 }
 
 QPacketSniffer::~QPacketSniffer()
 {
+  interface.disable_promiscuous_mode(sock);
   close(sock);
 }
 
 void QPacketSniffer::initialize_interface()
 {
-  std::cout << "QPacketSniffer(" << interface_name.toStdString() << ")" << std::endl;
-  int name_length = interface_name.length() > IFNAMSIZ - 1 ? IFNAMSIZ - 1 : interface_name.length();
-
-  memset(&interface, 0, sizeof(interface));
-  strncpy(interface.ifr_name, interface_name.toUtf8().data(), name_length);
-  if ((ioctl(sock, SIOGIFINDEX, &interface)) == -1)
-    throw std::runtime_error("cannot initialize interface " + std::string(interface.ifr_name) + ": " + std::string(strerror(errno)));
+  interface.initialize_if_index(sock);
+  interface.enable_promiscuous_mode(sock);
 }
 
 void QPacketSniffer::initialize_sock_address()
 {
   memset(&sock_address, 0, sizeof(sock_address));
   sock_address.sll_family   = AF_PACKET;
-  sock_address.sll_ifindex  = interface.ifr_ifindex;
+  sock_address.sll_ifindex  = interface.data.ifr_ifindex;
   sock_address.sll_protocol = get_protocol();
 }
 
@@ -70,7 +114,6 @@ void QPacketSniffer::Poll::watch(int fd)
 
 void QPacketSniffer::Poll::run()
 {
-  std::cout << "polling" << std::endl;
   int n_events = epoll_wait(efd, events, max_events, 1000);
 
   for (int i = 0 ; i < n_events ; ++i)
@@ -108,6 +151,7 @@ void QPacketSniffer::stop()
 
 void QPacketSniffer::capture_packet()
 {
+  /*std::cout << "CAPTURED PACKET" << std::endl;
   int     packetSize = 65535;
   char    packet[packetSize];
 
@@ -136,6 +180,7 @@ void QPacketSniffer::capture_packet()
       }
     }
   } while (k);
+  std::cout << "DONE WITH PACKET CAPTURE" << std::endl;*/
 }
 
 size_t QPacketSniffer::packet_offset_ip_header()
