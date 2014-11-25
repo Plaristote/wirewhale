@@ -2,7 +2,7 @@
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
-  sock == ::socket(PF_PACKET, SOCK_RAW, htos(ETH_P_ALL));
+  sock = ::socket(PF_PACKET, SOCK_RAW, htos(ETH_P_ALL));
   initialize_interface();
   initialize_sock_address();
   bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
