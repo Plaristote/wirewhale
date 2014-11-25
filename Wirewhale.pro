@@ -25,7 +25,16 @@ SOURCES += main.cpp \
     qpacketlistener.cpp \
     qsnifferthread.cpp \
     filterprofile.cpp \
-    wirewhale.cpp
+    wirewhale.cpp \
+    qabstractpacketsniffer.cpp
+
+linux:SOURCES += platforms/linux/qpacketsniffer.cpp
+macx:SOURCES  += platforms/osx/qpacketsniffer.cpp
+win32:SOURCES += platforms/windows/qpacketsniffer.cpp
+
+linux:HEADERS += platforms/linux/qpacketsniffer.h
+macx:HEADERS  += platforms/osx/qpacketsniffer.h
+win32:HEADERS += platforms/windows/qpacketsniffer.h
 
 # Installation path
 # target.path =
@@ -43,4 +52,6 @@ HEADERS += \
     qpacketlistener.h \
     qsnifferthread.h \
     filterprofile.h \
-    wirewhale.h
+    wirewhale.h \
+    qabstractpacketsniffer.h \
+    qpacketsniffer.h
