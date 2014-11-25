@@ -9,6 +9,7 @@
 #include <string.h>
 #include "qpacket.h"
 #include <iostream>
+#include <errno.h>
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
@@ -26,11 +27,13 @@ QPacketSniffer::~QPacketSniffer()
 
 void QPacketSniffer::initialize_interface()
 {
-    std::cout << "QPacketSniffer(" << interface_name.toStdString() << ")" << std::endl;
+  std::cout << "QPacketSniffer(" << interface_name.toStdString() << ")" << std::endl;
+  int name_length = interface_name.length() > IFNAMSIZ - 1 ? IFNAMSIZ - 1 : interface_name.length();
+
   memset(&interface, 0, sizeof(interface));
-  strncpy(interface_name.toUtf8().data(), interface.ifr_name, 16);
+  strncpy(interface.ifr_name, interface_name.toUtf8().data(), name_length);
   if ((ioctl(sock, SIOGIFINDEX, &interface)) == -1)
-    throw std::runtime_error("cannot initialize interface " + interface_name.toStdString());
+    throw std::runtime_error("cannot initialize interface " + std::string(interface.ifr_name) + ": " + std::string(strerror(errno)));
 }
 
 void QPacketSniffer::initialize_sock_address()
@@ -67,7 +70,8 @@ void QPacketSniffer::Poll::watch(int fd)
 
 void QPacketSniffer::Poll::run()
 {
-  int n_events = epoll_wait(efd, events, max_events, -1);
+  std::cout << "polling" << std::endl;
+  int n_events = epoll_wait(efd, events, max_events, 1000);
 
   for (int i = 0 ; i < n_events ; ++i)
     on_event(events[i].data.fd);
