@@ -26,9 +26,10 @@ class QPacketSniffer : public QAbstractPacketSniffer
     private:
       void       reset_fds();
 
-      QList<int> read_set_fds;
-      fd_set     read_set;
-      int        max_fd;
+      QList<int>     read_set_fds;
+      fd_set         read_set;
+      int            max_fd;
+      struct timeval timeout;
     };
 public:
     QPacketSniffer(const QString& interface_name, QObject* parent);

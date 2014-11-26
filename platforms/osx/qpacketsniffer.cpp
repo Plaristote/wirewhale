@@ -107,8 +107,10 @@ void QPacketSniffer::Poll::run()
   std::cout << "QPacketSniffer::Poll::run" << std::endl;
   int n;
 
+  timeout.tv_sec  = 1;
+  timeout.tv_usec = 0;
   reset_fds();
-  n = select(max_fd, &read_set, 0, 0, 0);
+  n = select(max_fd, &read_set, 0, 0, &timeout);
   if (n > 0)
   {
     foreach(int fd, read_set_fds)
