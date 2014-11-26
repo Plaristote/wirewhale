@@ -24,17 +24,19 @@ SOURCES += main.cpp \
     qsnifferthread.cpp \
     filterprofile.cpp \
     wirewhale.cpp \
-    qabstractpacketsniffer.cpp \
+    qabstractpacketsniffer.cpp
 
 linux:SOURCES += platforms/linux/qpacketsniffer.cpp \
-    platforms/linux/qpacketsniffer-interface.cpp
-macx:SOURCES  += platforms/osx/qpacketsniffer.cpp
-unix:SOURCES  += platforms/unix/qpacketsniffer-packet.cpp
-win32:SOURCES += platforms/windows/qpacketsniffer.cpp
+                 platforms/linux/qpacketsniffer-interface.cpp \
+                 platforms/linux/qpacketsniffer-poll.cpp
+macx:SOURCES  += platforms/osx/qpacketsniffer.cpp \
+                 platforms/osx/qpacketsniffer-poll.cpp
+unix:SOURCES  += platforms/unix/qpacketsniffer-packet.cpp \
+                 platforms/unix/qunixpacketsniffer.cpp
 
 linux:HEADERS += platforms/linux/qpacketsniffer.h
 macx:HEADERS  += platforms/osx/qpacketsniffer.h
-win32:HEADERS += platforms/windows/qpacketsniffer.h
+unix:HEADERS  += platforms/unix/qunixpacketsniffer.h
 
 # Installation path
 # target.path =
@@ -55,4 +57,5 @@ HEADERS += \
     wirewhale.h \
     qabstractpacketsniffer.h \
     qpacketsniffer.h \
-    endianness.h
+    endianness.h \
+    platforms/unix/qunixpacketsniffer.h

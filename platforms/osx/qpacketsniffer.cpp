@@ -29,7 +29,7 @@
 
 using namespace std;
 
-QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
+QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QUnixPacketSniffer(interface_name, parent)
 {
   sock = ::socket(PF_NDRV, SOCK_RAW, 0);
   initialize_sock_address();
@@ -92,85 +92,4 @@ void QPacketSniffer::wait()
 void QPacketSniffer::stop()
 {
   must_stop = true;
-}
-
-void QPacketSniffer::capture_packet()
-{
-    Packet  packet;
-    int     k;
-    int     n_packet_read = 0;
-
-    pending_packets_mutex.lock();
-    do
-    {
-      k = read(sock, packet.buffer, sizeof(packet.buffer));
-      if (packet.has_supported_type())
-      {
-        QPacket qpacket;
-        bool    is_first_received_packet = pending_packets.count() == 0;
-
-        switch (packet.get_ether_type())
-        {
-        case Packet::IPv4:
-            qpacket.ethernet_type = QPacket::IPv4;
-        case Packet::IPv6:
-            qpacket.ethernet_type = QPacket::IPv6;
-        case Packet::ARP:
-            qpacket.ethernet_type = QPacket::ARP;
-        }
-        qpacket.source      = packet.get_source_ip();
-        qpacket.destination = packet.get_destination_ip();
-        qpacket.protocol    = packet.get_protocol();
-        qpacket.length      = k;
-        qpacket.time        = time(0);
-        pending_packets << qpacket;
-        if (is_first_received_packet)
-          emit packetsReceived();
-      }
-      n_packet_read++;
-    } while (k > 0 && n_packet_read < max_captured_packets);
-    pending_packets_mutex.unlock();
-}
-
-QPacketSniffer::Poll::Poll()
-{
-  max_fd = 0;
-}
-
-QPacketSniffer::Poll::~Poll()
-{
-}
-
-void QPacketSniffer::Poll::run()
-{
-  std::cout << "QPacketSniffer::Poll::run" << std::endl;
-  int n;
-
-  timeout.tv_sec  = 1;
-  timeout.tv_usec = 0;
-  reset_fds();
-  n = select(max_fd, &read_set, 0, 0, &timeout);
-  if (n > 0)
-  {
-    foreach(int fd, read_set_fds)
-    {
-      if (FD_ISSET(fd, &read_set))
-        on_event(fd);
-    }
-  }
-  std::cout << "Done selecting" << std::endl;
-}
-
-void QPacketSniffer::Poll::reset_fds()
-{
-  FD_ZERO(&read_set);
-  foreach(int fd, read_set_fds)
-    FD_SET(fd, &read_set);
-}
-
-void QPacketSniffer::Poll::watch(int fd)
-{
-  read_set_fds << fd;
-  if (fd > max_fd)
-    max_fd = fd;
 }
