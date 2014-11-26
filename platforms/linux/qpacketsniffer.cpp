@@ -141,13 +141,3 @@ void QPacketSniffer::capture_packet()
   } while (k > 0 && n_packet_read < max_captured_packets);
   pending_packets_mutex.unlock();
 }
-
-size_t QPacketSniffer::packet_offset_ip_header()
-{
-  return sizeof(ether_header);
-}
-
-size_t QPacketSniffer::packet_offset_xcp_header()
-{
-  return packet_offset_ip_header() + sizeof(struct iphdr);
-}

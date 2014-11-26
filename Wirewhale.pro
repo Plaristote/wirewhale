@@ -27,9 +27,9 @@ SOURCES += main.cpp \
     qabstractpacketsniffer.cpp \
 
 linux:SOURCES += platforms/linux/qpacketsniffer.cpp \
-    platforms/linux/qpacketsniffer-packet.cpp \
     platforms/linux/qpacketsniffer-interface.cpp
 macx:SOURCES  += platforms/osx/qpacketsniffer.cpp
+unix:SOURCES  += platforms/unix/qpacketsniffer-packet.cpp
 win32:SOURCES += platforms/windows/qpacketsniffer.cpp
 
 linux:HEADERS += platforms/linux/qpacketsniffer.h
@@ -54,4 +54,5 @@ HEADERS += \
     filterprofile.h \
     wirewhale.h \
     qabstractpacketsniffer.h \
-    qpacketsniffer.h
+    qpacketsniffer.h \
+    endianness.h

@@ -1,14 +1,34 @@
 #include "qpacketsniffer.h"
 #include <unistd.h>
-#include <linux/sockios.h>
-#include <linux/if_ether.h>
-#include <netinet/ether.h>
 #include <netinet/ip.h>
 #include <arpa/inet.h>
-#include <stropts.h>
 #include <string.h>
 #include <iostream>
 #include <errno.h>
+#include <net/ethernet.h>
+#include "endianness.h"
+
+#if defined(__APPLE__)
+struct iphdr {
+#if USE_LITTLE_ENDIAN
+        uint8_t ihl:4,
+                version:4;
+#else
+        uint8_t version:4,
+                ihl:4;
+#endif
+        uint8_t   tos;
+        uint16_t  tot_len;
+        uint16_t  id;
+        uint16_t  frag_off;
+        uint8_t   ttl;
+        uint8_t   protocol;
+        uint8_t   check;
+        uint32_t  saddr;
+        uint32_t  daddr;
+        /*The options start here. */
+};
+#endif
 
 QPacketSniffer::Packet::Packet()
 {
@@ -26,6 +46,8 @@ bool QPacketSniffer::Packet::has_supported_type() const
     case IPv6:
     case ARP:
       return true;
+  default:
+      break ;
   }
   return false;
 }
@@ -92,18 +114,24 @@ QString QPacketSniffer::Packet::get_protocol(void) const
       return "rsvp";
     case IPPROTO_SCTP:
       return "sctp";
+#ifdef IPPROTO_DCCP
     case IPPROTO_DCCP:
       return "dccp";
+#endif
     case IPPROTO_EGP:
         return "egp";
     case IPPROTO_ESP:
       return "esp";
     case IPPROTO_AH:
       return "ah";
+#ifdef IPPROTO_COMP
     case IPPROTO_COMP:
       return "comp";
+#endif
+#ifdef IPPROTO_BEETPH
     case IPPROTO_BEETPH:
       return "beethph";
+#endif
     case IPPROTO_DSTOPTS:
       return "dstopts";
     case IPPROTO_FRAGMENT:
@@ -136,4 +164,14 @@ QString QPacketSniffer::Packet::get_protocol(void) const
   else if (get_ether_type() == ARP)
     return "arp";
   return "";
+}
+
+size_t QPacketSniffer::Packet::packet_offset_ip_header()
+{
+  return sizeof(ether_header);
+}
+
+size_t QPacketSniffer::Packet::packet_offset_xcp_header()
+{
+  return packet_offset_ip_header() + sizeof(struct iphdr);
 }

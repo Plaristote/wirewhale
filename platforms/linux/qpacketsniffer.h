@@ -66,6 +66,9 @@ class QPacketSniffer : public QAbstractPacketSniffer
       QString get_destination_ip(void) const;
       QString get_protocol(void)       const;
 
+      static size_t packet_offset_ip_header();
+      static size_t packet_offset_xcp_header();
+
       char                 buffer[65535];
       struct ether_header* eth;
       struct iphdr*        ip;
@@ -78,9 +81,6 @@ public:
     void run();
     void stop();
     void wait();
-
-    static size_t packet_offset_ip_header();
-    static size_t packet_offset_xcp_header();
 
 private:
     uint16_t get_protocol() const;
