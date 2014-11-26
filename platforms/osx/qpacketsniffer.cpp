@@ -20,15 +20,21 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
-#include<sys/types.h>
+#include <sys/types.h>
+#include <iostream>
+
+// http://www.lists.apple.com/archives/darwin-dev/2011/Jan/msg00049.html
+
+using namespace std;
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QAbstractPacketSniffer(interface_name, parent)
 {
-  struct ifreq       interface;
-  //struct sockaddr_ll sock_address;
+  struct sockaddr_ndrv sock_address;
 
-  sock == ::socket(PF_NDRV, SOCK_RAW, 0);
- // bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
+  sock = ::socket(PF_NDRV, SOCK_RAW, 0);
+
+  initialize_sock_address();
+  bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address));
 }
 
 QPacketSniffer::~QPacketSniffer()
@@ -36,6 +42,20 @@ QPacketSniffer::~QPacketSniffer()
   close(sock);
 }
 
+void QPacketSniffer::initialize_sock_address()
+{
+  int name_length = interface_name.length();
+
+  strncpy((char*)sock_address.snd_name, interface_name.toStdString().c_str(), name_length > IFNAMSIZ ? IFNAMSIZ : name_length);
+  std::cout << "initialize sock address " << sock_address.snd_name << std::endl;
+  sock_address.snd_len    = sizeof(sock_address);
+  sock_address.snd_family = AF_NDRV;
+}
+
 void QPacketSniffer::run()
+{
+}
+
+void QPacketSniffer::wait()
 {
 }

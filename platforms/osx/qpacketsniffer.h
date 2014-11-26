@@ -3,6 +3,8 @@
 
 # include "qabstractpacketsniffer.h"
 # include <sys/socket.h>
+# include <net/if.h>
+# include <net/ndrv.h>
 
 class QPacketSniffer : public QAbstractPacketSniffer
 {
@@ -13,8 +15,12 @@ public:
     ~QPacketSniffer();
 
     void run();
+    void wait();
 private:
+    void    initialize_sock_address();
+
     int     sock;
+    struct sockaddr_ndrv sock_address;
 };
 
 #endif
