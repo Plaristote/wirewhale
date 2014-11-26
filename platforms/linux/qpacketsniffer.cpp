@@ -299,6 +299,8 @@ void QPacketSniffer::capture_packet()
       qpacket.source      = packet.get_source_ip();
       qpacket.destination = packet.get_destination_ip();
       qpacket.protocol    = packet.get_protocol();
+      qpacket.length      = k;
+      qpacket.time        = time(0);
       pending_packets << qpacket;
       if (is_first_received_packet)
         emit packetsReceived();
