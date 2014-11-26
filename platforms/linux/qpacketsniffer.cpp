@@ -186,26 +186,30 @@ struct Packet
 
   QString get_source_ip(void) const
   {
+    char ip_string[16];
+
     switch (get_ether_type())
     {
     case IPv4:
-      return (get_source_ipv4());
     case IPv6:
-      return (get_source_ipv6());
+      inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
+      return ip_string;
     default:
       break ;
     }
-    return ("");
+    return "";
   }
 
   QString get_destination_ip(void) const
   {
+    char ip_string[16];
+
     switch (get_ether_type())
     {
     case IPv4:
-      return (get_destination_ipv4());
     case IPv6:
-      return (get_destination_ipv6());
+      inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
+      return ip_string;
     default:
       break ;
     }
@@ -243,33 +247,6 @@ struct Packet
   char                 buffer[65535];
   struct ether_header* eth;
   struct iphdr*        ip;
-
-private:
-  QString get_source_ipv6(void) const
-  {
-      return ("");
-  }
-
-  QString get_destination_ipv6(void) const
-  {
-      return ("");
-  }
-
-  QString get_source_ipv4(void) const
-  {
-    char ip_string[16];
-
-    inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
-    return (ip_string);
-  }
-
-  QString get_destination_ipv4(void) const
-  {
-    char ip_string[16];
-
-    inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
-    return (ip_string);
-  }
 };
 
 void QPacketSniffer::capture_packet()
