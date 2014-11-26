@@ -16,8 +16,9 @@ public:
 
     const QString& getInterfaceName(void) { return (interface_name); }
 
-    virtual void run(void) = 0;
-    virtual void stop(void) {}
+    virtual void run(void)  = 0;
+    virtual void wait(void) = 0;
+    virtual void stop(void) = 0;
 
     QVector<QPacket> pullPendingPackets(QVector<QPacket> list);
 signals:

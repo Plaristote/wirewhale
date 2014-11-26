@@ -7,6 +7,7 @@
 # include <net/if.h>
 # include <net/ndrv.h>
 # include <functional>
+# include <QMutex>
 
 class QPacketSniffer : public QAbstractPacketSniffer
 {
@@ -14,6 +15,7 @@ class QPacketSniffer : public QAbstractPacketSniffer
 
     class Poll
     {
+    public:
       Poll();
       ~Poll();
 
@@ -22,8 +24,11 @@ class QPacketSniffer : public QAbstractPacketSniffer
 
       std::function<void (int fd)> on_event;
     private:
-      fd_set read_set;
-      int    max_fd;
+      void       reset_fds();
+
+      QList<int> read_set_fds;
+      fd_set     read_set;
+      int        max_fd;
     };
 public:
     QPacketSniffer(const QString& interface_name, QObject* parent);
@@ -31,12 +36,17 @@ public:
 
     void run();
     void wait();
+    void stop();
 private:
     void    initialize_sock_address();
     void    initialize_protocol();
 
     int                  sock;
     struct sockaddr_ndrv sock_address;
+    Poll                 poll;
+    bool                 must_stop;
+    QMutex               mutex;
+    Qt::HANDLE           sniffing_thread;
 };
 
 #endif
