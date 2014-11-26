@@ -33,10 +33,12 @@ macx:SOURCES  += platforms/osx/qpacketsniffer.cpp \
                  platforms/osx/qpacketsniffer-poll.cpp
 unix:SOURCES  += platforms/unix/qpacketsniffer-packet.cpp \
                  platforms/unix/qunixpacketsniffer.cpp
+win32:SOURCES += platforms/windows/qpacketsniffer.cpp
 
 linux:HEADERS += platforms/linux/qpacketsniffer.h
 macx:HEADERS  += platforms/osx/qpacketsniffer.h
 unix:HEADERS  += platforms/unix/qunixpacketsniffer.h
+win32:HEADERS += platforms/windows/qpacketsniffer.h
 
 # Installation path
 # target.path =
@@ -57,5 +59,4 @@ HEADERS += \
     wirewhale.h \
     qabstractpacketsniffer.h \
     qpacketsniffer.h \
-    endianness.h \
-    platforms/unix/qunixpacketsniffer.h
+    endianness.h

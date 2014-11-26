@@ -1,5 +1,5 @@
 #include "qsnifferthread.h"
-#include <qpacket.h>
+#include "qpacket.h"
 #include <iostream>
 #include "networkinterfacelist.h"
 
@@ -7,8 +7,8 @@ QSnifferThread::QSnifferThread(QObject *parent) : QThread(parent)
 {
   NetworkInterfaceList interface_list;
 
-  interface = interface_list.first();
-  sniffer   = 0;
+  interface_ = interface_list.first();
+  sniffer    = 0;
 }
 
 void QSnifferThread::start()
@@ -39,7 +39,7 @@ bool QSnifferThread::isSniffing()
 
 void QSnifferThread::changeInterface(QString interface)
 {
-  this->interface = interface;
+  this->interface_ = interface;
   if (isSniffing())
   {
     stopSniffing();
@@ -55,7 +55,7 @@ void QSnifferThread::initializeSniffer()
   try
   {
     number  = 0;
-    sniffer = new QPacketSniffer(interface, this);
+    sniffer = new QPacketSniffer(interface_, this);
     connect(sniffer, SIGNAL(packetsReceived()), this, SIGNAL(packetReceived()));
   }
   catch (const std::runtime_error& e)

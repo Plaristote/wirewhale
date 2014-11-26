@@ -12,7 +12,7 @@
 #include <errno.h>
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
-    QAbstractPacketSniffer(interface_name, parent),
+    QUnixPacketSniffer(interface_name, parent),
     interface(interface_name)
 {
   sock      = ::socket(PF_PACKET, SOCK_RAW, get_protocol());

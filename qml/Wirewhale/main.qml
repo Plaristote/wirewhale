@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Window 2.0
 import QtQuick.Layouts 1.0
-import QtQuick.Dialogs 1.2
+import QtQuick.Dialogs 1.0
 
 ApplicationWindow {
   title: qsTr("Wirewhale")
@@ -18,9 +18,9 @@ ApplicationWindow {
     }
   }
 
-  MessageDialog {
+  /*MessageDialog {
     id: alertDialog
-  }
+  }*/
 
   ColumnLayout {
     anchors.fill: parent;

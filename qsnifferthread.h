@@ -3,10 +3,11 @@
 
 #include <QThread>
 #include <QMutex>
-#include <qpacket.h>
+#include "qpacket.h"
 #include <QList>
 #include <QVector>
 #include "qpacketsniffer.h"
+#include <QString>
 
 class QSnifferThread : public QThread
 {
@@ -25,14 +26,14 @@ public slots:
   void start();
   void startSniffing();
   void stopSniffing();
-  void changeInterface(QString interface);
+  void changeInterface(QString interface_);
 
 private:
   void            run();
   void            initializeSniffer();
   void            deleteSniffer();
 
-  QString         interface;
+  QString         interface_;
   QMutex          mutex;
   bool            mustStop;
   QPacketSniffer* sniffer;

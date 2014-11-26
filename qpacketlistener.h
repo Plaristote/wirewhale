@@ -2,9 +2,9 @@
 #define QPACKETLISTENER_H
 
 #include <QObject>
-#include <qpackettable.h>
-#include <qsnifferthread.h>
-#include <qpacket.h>
+#include "qpackettable.h"
+#include "qsnifferthread.h"
+#include "qpacket.h"
 
 class QPacketListener : public QObject
 {
@@ -17,11 +17,11 @@ public:
     ~QPacketListener();
 
 protected:
-    QString getInterface(void) const { return (interface); }
+    QString getInterface(void) const { return (interface_); }
 
     void    setInterface(QString i)
     {
-      interface = i;
+      interface_ = i;
       emit interfaceChanged();
     }
 
@@ -55,7 +55,7 @@ private slots:
 
 private:
   QPacketTable*  packetTable;
-  QString        interface, lastError;
+  QString        interface_, lastError;
   long           number;
   bool           listening;
   QSnifferThread snifferThread;

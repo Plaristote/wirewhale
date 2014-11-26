@@ -7,8 +7,8 @@
 #  include "platforms/osx/qpacketsniffer.h"
 # elif defined(__linux__)
 #  include "platforms/linux/qpacketsniffer.h"
-# elif defined(__WIN32__)
+# elif defined(WIN32)
 #  include "platforms/windows/qpacketsniffer.h"
-#endif
+# endif
 
 #endif // QPACKETSNIFFER_H
