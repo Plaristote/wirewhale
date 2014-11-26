@@ -24,9 +24,11 @@ SOURCES += main.cpp \
     qsnifferthread.cpp \
     filterprofile.cpp \
     wirewhale.cpp \
-    qabstractpacketsniffer.cpp
+    qabstractpacketsniffer.cpp \
 
-linux:SOURCES += platforms/linux/qpacketsniffer.cpp
+linux:SOURCES += platforms/linux/qpacketsniffer.cpp \
+    platforms/linux/qpacketsniffer-packet.cpp \
+    platforms/linux/qpacketsniffer-interface.cpp
 macx:SOURCES  += platforms/osx/qpacketsniffer.cpp
 win32:SOURCES += platforms/windows/qpacketsniffer.cpp
 
