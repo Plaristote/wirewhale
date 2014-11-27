@@ -52,7 +52,7 @@ RowLayout {
   Button {
     text:      qsTr("Pause")
     onClicked: packetListener.askedToPause()
-    visible:   packetListener.listening
+    visible:   packetListener.listening == true
   }
 
   Button {
