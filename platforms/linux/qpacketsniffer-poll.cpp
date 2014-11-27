@@ -1,4 +1,5 @@
 #include "qpacketsniffer.h"
+#include <unistd.h>
 
 QPacketSniffer::Poll::Poll()
 {
