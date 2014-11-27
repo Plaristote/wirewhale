@@ -18,7 +18,7 @@ ApplicationWindow {
     }
   }
 
-  /*MessageDialog {
+ /* MessageDialog {
     id: alertDialog
   }*/
 
