@@ -18,7 +18,8 @@ public:
     RoleDestination,
     RoleProtocol,
     RoleLength,
-    RoleInformation
+    RoleInformation,
+    RolePayload
   };
 
   explicit QPacketTable(QObject *parent = 0);
@@ -32,12 +33,12 @@ public:
   void     addPackets(QVector<QPacket> packets);
   QPacket  packet(long number);
 
-
 signals:
   void     packetsAdded(QVector<QPacket>);
 
 public slots:
   void     clear();
+  QVariant getDataAt(int x, QString role);
 
 protected:
   void     addPacket(QPacket);

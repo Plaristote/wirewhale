@@ -20,6 +20,7 @@ QHash<int, QByteArray> QPacketTable::roleNames() const
   roles[RoleProtocol]    = "protocol";
   roles[RoleLength]      = "length";
   roles[RoleInformation] = "information";
+  roles[RolePayload]     = "payload";
   return roles;
 }
 
@@ -64,6 +65,13 @@ void QPacketTable::clear()
   }
 }
 
+QVariant QPacketTable::getDataAt(int row, QString role)
+{
+  if (row < 0 || packets.size() <= row)
+    return "";
+  return data(createIndex(row, 0), roleNames().key(QByteArray(role.toStdString().c_str())));
+}
+
 int QPacketTable::rowCount(const QModelIndex&) const
 {
   return (packets.size());
@@ -95,6 +103,8 @@ QVariant QPacketTable::data(const QModelIndex& index, int role) const
       return QString::number(packet.length);
     case RoleInformation:
       return packet.information;
+  case RolePayload:
+      return packet.payload;
   }
   return (1);
 }

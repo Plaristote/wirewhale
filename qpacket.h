@@ -26,6 +26,7 @@ public:
   QString      protocol;
   long         length;
   QString      information;
+  QString      payload;
 };
 
 #endif // QPACKET_H

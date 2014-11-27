@@ -8,6 +8,10 @@
 #include <net/ethernet.h>
 #include "endianness.h"
 
+#if defined(__linux__)
+# include <linux/tcp.h>
+#endif
+
 #if defined(__APPLE__)
 struct iphdr {
 #if USE_LITTLE_ENDIAN
@@ -50,6 +54,19 @@ bool QPacketSniffer::Packet::has_supported_type() const
       break ;
   }
   return false;
+}
+
+QByteArray QPacketSniffer::Packet::data() const
+{
+  if (ip->protocol == IPPROTO_TCP)
+  {
+    struct tcphdr* tcp      = (struct tcphdr*)(buffer + packet_offset_xcp_header());
+    const char*    payload  = (const char*)((unsigned char*)(tcp) + (tcp->doff * 4));
+    size_t         max_size = (buffer + ip->tot_len - payload) / sizeof(char);
+
+    return QByteArray(payload, max_size);
+  }
+  return "";
 }
 
 bool QPacketSniffer::Packet::has_ip_type() const

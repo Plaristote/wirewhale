@@ -1,5 +1,6 @@
 #include "qunixpacketsniffer.h"
 #include <unistd.h>
+#include <iostream>
 
 QUnixPacketSniffer::QUnixPacketSniffer(const QString& interface_name, QObject *parent) : QAbstractPacketSniffer(interface_name, parent)
 {
@@ -15,7 +16,7 @@ void QUnixPacketSniffer::capture_packet()
   do
   {
     k = read(sock, packet.buffer, sizeof(packet.buffer));
-    if (packet.has_supported_type())
+    if (packet.has_supported_type() && !runFilters(packet))
     {
       QPacket qpacket;
       bool    is_first_received_packet = pending_packets.count() == 0;
@@ -34,6 +35,16 @@ void QUnixPacketSniffer::capture_packet()
       qpacket.protocol    = packet.get_protocol();
       qpacket.length      = k;
       qpacket.time        = time(0);
+      // Get Payload
+      {
+        QByteArray payload           = packet.data();
+        QString    payload_as_string = QString::fromLocal8Bit(payload.constData(), payload.length());
+
+        if (payload_as_string.isSimpleText())
+          qpacket.payload = payload_as_string;
+        else
+          qpacket.payload = QString(payload.toHex());
+      }
       pending_packets << qpacket;
       if (is_first_received_packet)
         emit packetsReceived();

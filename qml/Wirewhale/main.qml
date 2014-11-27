@@ -38,5 +38,15 @@ ApplicationWindow {
       Layout.fillWidth:  true
       Layout.fillHeight: true
     }
+
+    TextArea {
+      Layout.fillWidth:  true
+      Layout.fillHeight: true
+      text: packetLogModel.getDataAt(packetLog.currentRow, "payload")
+      visible: text != ""
+      readOnly: true
+      wrapMode: TextEdit.Wrap
+      font.family: "Courier"
+    }
   }
 }

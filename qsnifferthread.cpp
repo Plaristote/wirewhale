@@ -49,7 +49,6 @@ void QSnifferThread::changeInterface(QString interface)
     mutex.unlock();
   }
 }
-
 void QSnifferThread::initializeSniffer()
 {
   try

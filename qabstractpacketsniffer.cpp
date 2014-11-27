@@ -14,3 +14,13 @@ QVector<QPacket> QAbstractPacketSniffer::pullPendingPackets(QVector<QPacket> lis
   pending_packets_mutex.unlock();
   return (list);
 }
+
+bool QAbstractPacketSniffer::runFilters(const Packet& packet) const
+{
+  foreach (auto filter, filters)
+  {
+    if (filter(packet) == true)
+      return true;
+  }
+  return false;
+}
