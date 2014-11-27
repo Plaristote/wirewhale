@@ -1,11 +1,13 @@
 #include "qpackettable.h"
 #include <QVariant>
+#include <iostream>
 
 #define COLUMN_COUNT 7
 
 QPacketTable::QPacketTable(QObject *parent) :
   QAbstractTableModel(parent)
 {
+  max_packets = 10;
 }
 
 QHash<int, QByteArray> QPacketTable::roleNames() const
@@ -26,15 +28,30 @@ QHash<int, QByteArray> QPacketTable::roleNames() const
 
 void QPacketTable::addPackets(QVector<QPacket> packets)
 {
-  int firstRow = this->packets.count();
+  while (packets.count() > max_packets)
+    packets.removeFirst();
+  if (packets.count() + this->packets.count() > max_packets)
+  {
+    int to_remove = (packets.count() + this->packets.count()) - max_packets;
 
-  beginInsertRows(QModelIndex(), firstRow, firstRow + packets.count() - 1);
-  foreach (QPacket packet, packets)
-    addPacket(packet);
-  endInsertRows();
-  emit layoutChanged();
-  emit dataChanged(index(firstRow, 0), index(firstRow + packets.count() - 1, COLUMN_COUNT));
-  emit packetsAdded(packets);
+    if (to_remove > this->packets.count())
+      to_remove = this->packets.count();
+    beginRemoveRows(QModelIndex(), 0, to_remove);
+    while (--to_remove >= 0)
+      this->packets.removeFirst();
+    endRemoveRows();
+  }
+  {
+    int firstRow = this->packets.count();
+
+    beginInsertRows(QModelIndex(), firstRow, firstRow + packets.count() - 1);
+    foreach (QPacket packet, packets)
+      addPacket(packet);
+    endInsertRows();
+    emit layoutChanged();
+    emit dataChanged(index(firstRow, 0), index(firstRow + packets.count() - 1, COLUMN_COUNT));
+    emit packetsAdded(packets);
+  }
 }
 
 void QPacketTable::addPacket(QPacket packet)

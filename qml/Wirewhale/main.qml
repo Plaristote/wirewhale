@@ -29,8 +29,7 @@ ApplicationWindow {
 
   MessageDialog {
     id: alertDialog
-    x: window.x + (window.width / 2)  - (width / 2)
-    y: window.y + (window.height / 2) - (height / 2)
+    icon: StandardIcon.Critical
   }
 
   ColumnLayout {

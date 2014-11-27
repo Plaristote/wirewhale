@@ -8,6 +8,8 @@
 class QPacketTable : public QAbstractTableModel
 {
   Q_OBJECT
+
+  Q_PROPERTY(int maxPackets READ getMaxPackets WRITE setMaxPackets NOTIFY maxPacketsChanged)
 public:
   enum Roles
   {
@@ -33,8 +35,12 @@ public:
   void     addPackets(QVector<QPacket> packets);
   QPacket  packet(long number);
 
+  void setMaxPackets(int max_packets) { this->max_packets = max_packets; emit maxPacketsChanged(); }
+  int  getMaxPackets() const { return (max_packets); }
+
 signals:
   void     packetsAdded(QVector<QPacket>);
+  void     maxPacketsChanged();
 
 public slots:
   void     clear();
@@ -45,6 +51,7 @@ protected:
 
 private:
   QList<QPacket> packets;
+  int            max_packets;
 };
 
 #endif // QPACKETTABLE_H

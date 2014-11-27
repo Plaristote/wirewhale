@@ -2,7 +2,7 @@ import QtQuick 2.0
 import QtQuick.Layouts 1.0
 import QtQuick.Controls 1.0
 
-RowLayout {
+ColumnLayout {
     property string label: 'label'
     property var    model
     property real   minWidth: 200
