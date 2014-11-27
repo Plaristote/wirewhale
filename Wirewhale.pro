@@ -15,6 +15,9 @@ QT += qml quick
 
 CONFIG += c++11
 
+include(qtquick2applicationviewer/qtquick2applicationviewer.pri)
+qtcAddDeployment()
+
 # The .cpp file which was generated for your project. Feel free to hack it.
 SOURCES += main.cpp \
     qpackettable.cpp \
