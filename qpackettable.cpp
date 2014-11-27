@@ -52,13 +52,16 @@ QPacket QPacketTable::packet(long number)
 
 void QPacketTable::clear()
 {
-    int count = packets.count();
+  int count = packets.count();
 
+  if (count > 0)
+  {
     beginRemoveRows(QModelIndex(), 0, count);
     packets.clear();
     endRemoveRows();
     emit layoutChanged();
     emit dataChanged(index(0, 0), index(count, COLUMN_COUNT));
+  }
 }
 
 int QPacketTable::rowCount(const QModelIndex&) const
