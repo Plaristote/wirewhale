@@ -10,6 +10,9 @@
 
 #if defined(__linux__)
 # include <linux/tcp.h>
+# include <linux/udp.h>
+# include <linux/icmp.h>
+# include <linux/if_arp.h>
 #endif
 
 #if defined(__APPLE__)
@@ -39,7 +42,7 @@ QPacketSniffer::Packet::Packet()
   memset(buffer, 0, sizeof(buffer));
   eth = (struct ether_header*)buffer;
   ip  = (struct iphdr*)(buffer + packet_offset_ip_header());
-  //struct tcphdr*       tcp = (struct tcphdr*)(packet + packet_offset_xcp_header());
+  arp = (struct arphdr*)(ip);
 }
 
 bool QPacketSniffer::Packet::has_supported_type() const
@@ -56,18 +59,72 @@ bool QPacketSniffer::Packet::has_supported_type() const
   return false;
 }
 
+QByteArray arpOperationCodeToString(__be16 opCode)
+{
+  switch (opCode)
+  {
+  case 1:
+    return "REQUEST";
+  case 2:
+    return "REPLY";
+  case 3:
+    return "request Reverse";
+  case 4:
+    return "reply Reverse";
+  case 5:
+    return "DRARP-Request";
+  case 6:
+    return "DRARP-Reply";
+  case 7:
+    return "DRARP-Error";
+  case 8:
+    return "InARP-Request";
+  case 9:
+    return "InARP-Reply";
+  case 10:
+    return "APP-NAK";
+  }
+  return QByteArray(QString("unknown operation code '" + QString::number(opCode) + '\'').toLatin1());
+}
+
 QByteArray QPacketSniffer::Packet::data() const
 {
-  if (ip->protocol == IPPROTO_TCP)
+  if (has_ip_type())
   {
-    struct tcphdr* tcp      = (struct tcphdr*)(buffer + packet_offset_xcp_header());
-    const char*    payload  = (const char*)((unsigned char*)(tcp) + (tcp->doff * 4));
-    size_t         max_size = (buffer + ip->tot_len - payload) / sizeof(char);
+    if (ip->protocol == IPPROTO_TCP)
+    {
+      struct tcphdr* tcp      = (struct tcphdr*)(buffer + packet_offset_xcp_header());
+      const char*    payload  = (const char*)((unsigned char*)(tcp) + (tcp->doff * 4));
+      size_t         max_size = (buffer + ip->tot_len - payload) / sizeof(char);
 
-    return QByteArray(payload, max_size);
+      return QByteArray(payload, max_size);
+    }
+    else if (ip->protocol == IPPROTO_UDP)
+    {
+      struct udphdr* udp      = (struct udphdr*)(buffer + packet_offset_xcp_header());
+      const char*    payload  = (const char*)((unsigned char*)(udp) + sizeof(struct udphdr));
+      size_t         max_size = udp->len;
+
+      return QByteArray(payload, max_size);
+    }
+    else if (ip->protocol == IPPROTO_ICMP)
+    {
+    }
+  }
+  else if (get_ether_type() == ARP)
+  {
+    QString body;
+
+    body += "Format Hardware Address: " + QString::number(arp->ar_hrd) + '\n';
+    body += "Format Protocol Address: " + QString::number(arp->ar_pro) + '\n';
+    body += "Length Hardware Address: " + QString::number(arp->ar_hln) + '\n';
+    body += "Length Protocol Address: " + QString::number(arp->ar_pln) + '\n';
+    body += "Operation Code: " + arpOperationCodeToString(arp->ar_op);
+    return body.toLatin1();
   }
   return "";
 }
+
 
 bool QPacketSniffer::Packet::has_ip_type() const
 {
@@ -96,7 +153,66 @@ QString QPacketSniffer::Packet::get_source_ip(void) const
     inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
     return ip_string;
   }
+  else if (get_ether_type() == ARP)
+    return ArpPacket(this).get_source_ip();
   return "";
+}
+
+QByteArray QPacketSniffer::Packet::ArpPacket::get_source_ip() const
+{
+  const unsigned char* ar_sip = sender_ip_address_ptr();
+
+  return get_ip_at_address(ar_sip, arp->ar_pln);
+}
+
+QByteArray QPacketSniffer::Packet::ArpPacket::get_destination_ip() const
+{
+  const unsigned char* ar_dip = target_ip_address_ptr();
+
+  return get_ip_at_address(ar_dip, arp->ar_pln);
+}
+
+const unsigned char* QPacketSniffer::Packet::ArpPacket::sender_hardware_address_ptr() const
+{
+  return (const unsigned char*)(arp) + sizeof(arphdr);
+}
+
+const unsigned char* QPacketSniffer::Packet::ArpPacket::sender_ip_address_ptr() const
+{
+  return sender_hardware_address_ptr() + (sizeof(unsigned char) * arp->ar_hln);
+}
+
+const unsigned char* QPacketSniffer::Packet::ArpPacket::target_hardware_address_ptr() const
+{
+  return sender_ip_address_ptr() + (sizeof(unsigned char) * arp->ar_pln);
+}
+
+const unsigned char* QPacketSniffer::Packet::ArpPacket::target_ip_address_ptr() const
+{
+  return target_hardware_address_ptr() + (sizeof(unsigned char) * arp->ar_hln);
+}
+
+QByteArray QPacketSniffer::Packet::ArpPacket::get_ip_at_address(const unsigned char* ptr, unsigned char len) const
+{
+  QByteArray ip_string;
+
+  for (unsigned char i = 0 ; i < len ; ++i)
+  {
+    if (i > 0)
+      ip_string += '.';
+    ip_string += QByteArray::number(ptr[i]);
+  }
+  return ip_string;
+}
+
+QPacketSniffer::Packet::ArpPacket::ArpPacket(const Packet* packet) : packet(*packet)
+{
+  arp = (struct arphdr*)(packet->buffer + Packet::packet_offset_ip_header());
+}
+
+QPacketSniffer::Packet::IpPacket::IpPacket(const Packet* packet) : packet(*packet)
+{
+  ip = (struct iphdr*)(packet->buffer + Packet::packet_offset_ip_header());
 }
 
 QString QPacketSniffer::Packet::get_destination_ip(void) const
@@ -108,6 +224,8 @@ QString QPacketSniffer::Packet::get_destination_ip(void) const
     inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
     return ip_string;
   }
+  else if (get_ether_type() == ARP)
+    return Packet::ArpPacket(this).get_destination_ip();
   return "";
 }
 

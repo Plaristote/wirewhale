@@ -39,7 +39,31 @@ public:
 
       char                 buffer[65535];
       struct ether_header* eth;
+
+      struct IpPacket {
+        IpPacket(const Packet*);
+
+        const Packet& packet;
+        struct iphdr* ip;
+      };
+
+      struct ArpPacket {
+        ArpPacket(const Packet*);
+
+        QByteArray get_source_ip() const;
+        QByteArray get_destination_ip() const;
+        QByteArray get_ip_at_address(const unsigned char* ptr, unsigned char length) const;
+        const unsigned char* sender_hardware_address_ptr()  const;
+        const unsigned char* sender_ip_address_ptr()       const;
+        const unsigned char* target_hardware_address_ptr() const;
+        const unsigned char* target_ip_address_ptr()       const;
+
+        const Packet& packet;
+        struct arphdr* arp;
+      };
+
       struct iphdr*        ip;
+      struct arphdr*       arp;
     };
 
     typedef std::function<bool (const Packet&)> PacketFilter;
