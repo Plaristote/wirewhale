@@ -2,6 +2,7 @@
 # define QPACKET_H
 
 # include <QString>
+# include <QDateTime>
 
 struct QPacket
 {
@@ -16,6 +17,14 @@ public:
   };
 
   bool         operator==(long p) const { return (p == number); }
+
+  QDateTime    dateTime()
+  {
+    QDateTime datetime;
+
+    datetime.setTime_t(time);
+    return datetime;
+  }
 
   EthernetType ethernet_type;
   short        alertLevel;

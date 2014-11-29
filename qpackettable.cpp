@@ -109,7 +109,7 @@ QVariant QPacketTable::data(const QModelIndex& index, int role) const
     case RoleNumber:
       return QString::number(packet.number);
     case RoleTime:
-      return QString::number(packet.time);
+      return packet.dateTime().toString("h:mm:ss dd/MM/yy");
     case RoleSource:
       return packet.source;
     case RoleDestination:

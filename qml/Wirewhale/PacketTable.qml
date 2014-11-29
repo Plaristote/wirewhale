@@ -5,7 +5,7 @@ TableView {
 
   function infoColumnsWidth()
   {
-    var columns     = [ alert_column, number_column ];
+    var columns     = [ alert_column, number_column, time_column ];
     var total_width = 0;
 
     for (var i = 0 ; i < columns.length ; ++i)
@@ -37,9 +37,10 @@ TableView {
   }
 
   TableViewColumn {
+    id: time_column
     role: "time"
     title: "Time"
-    width: getColumnWidthFromRatio(0.1, 100)
+    width: 140
   }
 
   TableViewColumn {
@@ -65,7 +66,7 @@ TableView {
   TableViewColumn {
     role: "information"
     title: "Information"
-    width: getColumnWidthFromRatio(0.20)
+    width: getColumnWidthFromRatio(0.30)
   }
 }
 

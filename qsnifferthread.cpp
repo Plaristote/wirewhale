@@ -49,12 +49,21 @@ void QSnifferThread::changeInterface(QString interface)
     mutex.unlock();
   }
 }
+
+QPacketSniffer::PacketFilter filterPacketType(QPacketSniffer::Packet::EtherType ether_type)
+{
+  return [ether_type](QPacketSniffer::Packet packet) -> bool {
+    return packet.get_ether_type() != ether_type;
+  };
+}
+
 void QSnifferThread::initializeSniffer()
 {
   try
   {
     number  = 0;
     sniffer = new QPacketSniffer(interface_, this);
+    sniffer->addFilter(filterPacketType(QPacketSniffer::Packet::ARP));
     connect(sniffer, SIGNAL(packetsReceived()), this, SIGNAL(packetReceived()));
   }
   catch (const std::runtime_error& e)
