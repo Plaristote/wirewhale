@@ -187,6 +187,29 @@ QPacketSniffer::Packet::EtherType QPacketSniffer::Packet::get_ether_type(void) c
   return (EtherType)(ntohs(eth->ether_type));
 }
 
+QByteArray mac_address_to_string(u_char* ether_host)
+{
+  QByteArray mac_address;
+
+  for (char i = 0 ; i < ETHER_ADDR_LEN ; ++i)
+  {
+    mac_address += QByteArray::number(ether_host[i]).toHex();
+    if (i % 2 == 0)
+      mac_address += ':';
+  }
+  return mac_address;
+}
+
+QString QPacketSniffer::Packet::get_source_mac(void) const
+{
+  return mac_address_to_string(eth->ether_shost);
+}
+
+QString QPacketSniffer::Packet::get_destination_mac(void) const
+{
+  return mac_address_to_string(eth->ether_dhost);
+}
+
 QString QPacketSniffer::Packet::get_source_ip(void) const
 {
   if (has_ip_type())

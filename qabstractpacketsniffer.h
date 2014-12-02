@@ -29,12 +29,14 @@ public:
 
       QByteArray data() const;
 
-      bool has_supported_type()        const;
-      bool has_ip_type()               const;
-      EtherType get_ether_type(void)   const;
-      QString get_source_ip(void)      const;
-      QString get_destination_ip(void) const;
-      QString get_protocol(void)       const;
+      bool has_supported_type()         const;
+      bool has_ip_type()                const;
+      EtherType get_ether_type(void)    const;
+      QString get_source_mac(void)      const;
+      QString get_destination_mac(void) const;
+      QString get_source_ip(void)       const;
+      QString get_destination_ip(void)  const;
+      QString get_protocol(void)        const;
 
       static size_t packet_offset_ip_header();
       static size_t packet_offset_xcp_header();
