@@ -36,7 +36,7 @@ QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
 {
   open_bpf();
   initialize_interface();
-  //initialize_bpf();
+  initialize_bpf();
 }
 
 QPacketSniffer::~QPacketSniffer()
@@ -71,12 +71,14 @@ void QPacketSniffer::initialize_bpf()
 {
   bool success = true;
 
-  success = ioctl(sock, BIOCIMMEDIATE, &bpf_buffer_length) == -1;
+  bpf_buffer_length = 1;
+  success = ioctl(sock, BIOCIMMEDIATE, &bpf_buffer_length) >= 0;
   if (success == false)
     throw std::runtime_error(QByteArray("cannot set BIOCIMMEDIATE on BPF device: ") + QByteArray(strerror(errno)));
-  success = ioctl(sock, BIOCGBLEN,     &bpf_buffer_length) == -1;
+  success = ioctl(sock, BIOCGBLEN,     &bpf_buffer_length) >= 0;
   if (success == false)
     throw std::runtime_error(QByteArray("cannot set BIOCGBLEN on BPF device: ") + QByteArray(strerror(errno)));
+  std::cout << "bpf buffer length is " << bpf_buffer_length << std::endl;
 }
 
 void QPacketSniffer::run()
@@ -98,7 +100,6 @@ void QPacketSniffer::bpf()
     memset(buffer, 0, bpf_buffer_length);
     if ((read_bytes = read(sock, buffer, bpf_buffer_length)) > 0)
     {
-      std::cout << "reading some motherfucking bytes" << std::endl;
       char* ptr = reinterpret_cast<char*>(buffer);
       while (ptr < (reinterpret_cast<char*>(buffer) + read_bytes))
       {
@@ -107,6 +108,7 @@ void QPacketSniffer::bpf()
 
         strncpy(packet.buffer, (const char*)bpf_packet + bpf_packet->bh_hdrlen, packet.length);
         append_packet(packet);
+        ptr += BPF_WORDALIGN(bpf_packet->bh_hdrlen + bpf_packet->bh_caplen);
       }
     }
     else
