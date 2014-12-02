@@ -13,9 +13,11 @@
 # include <linux/udp.h>
 # include <linux/icmp.h>
 # include <linux/if_arp.h>
+#elif defined(__APPLE__)
+# include <net/if_arp.h>
 #endif
 
-#if defined(__APPLE__)
+#if !defined(__linux__)
 struct iphdr {
 #if USE_LITTLE_ENDIAN
         uint8_t ihl:4,
@@ -35,14 +37,55 @@ struct iphdr {
         uint32_t  daddr;
         /*The options start here. */
 };
+
+struct tcphdr {
+        uint16_t   source;
+        uint16_t   dest;
+        uint32_t   seq;
+        uint32_t   ack_seq;
+#if USE_LITTLE_ENDIAN
+        uint16_t   res1:4,
+                doff:4,
+                fin:1,
+                syn:1,
+                rst:1,
+                psh:1,
+                ack:1,
+                urg:1,
+                ece:1,
+                cwr:1;
+#else
+        uint16_t doff:4,
+                res1:4,
+                cwr:1,
+                ece:1,
+                urg:1,
+                ack:1,
+                psh:1,
+                rst:1,
+                syn:1,
+                fin:1;
+#endif
+        uint16_t   window;
+        uint16_t   check;
+        uint16_t   urg_ptr;
+};
+
+struct udphdr {
+    u_short	sport;	/* source port */
+    u_short	dport;	/* destination port */
+    u_short	len;	/* udp length */
+    u_short	sum;	/* udp checksum */
+};
 #endif
 
 QPacketSniffer::Packet::Packet()
 {
   memset(buffer, 0, sizeof(buffer));
-  eth = (struct ether_header*)buffer;
-  ip  = (struct iphdr*)(buffer + packet_offset_ip_header());
-  arp = (struct arphdr*)(ip);
+  eth    = (struct ether_header*)buffer;
+  ip     = (struct iphdr*)(buffer + packet_offset_ip_header());
+  arp    = (struct arphdr*)(ip);
+  length = MAX_PACKET_LENGTH;
 }
 
 bool QPacketSniffer::Packet::has_supported_type() const
@@ -59,7 +102,7 @@ bool QPacketSniffer::Packet::has_supported_type() const
   return false;
 }
 
-QByteArray arpOperationCodeToString(__be16 opCode)
+QByteArray arpOperationCodeToString(short opCode)
 {
   switch (opCode)
   {

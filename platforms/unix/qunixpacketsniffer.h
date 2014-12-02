@@ -10,6 +10,7 @@ protected:
     explicit QUnixPacketSniffer(const QString& interface_name, QObject *parent = 0);
 
     void capture_packet();
+    void append_packet(const Packet&);
 
     int sock;
 };
