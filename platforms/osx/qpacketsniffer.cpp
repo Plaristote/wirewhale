@@ -36,12 +36,12 @@ QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) :
 {
   open_bpf();
   initialize_interface();
-  initialize_bpf();
-  poll.on_event = [this](int) { capture_packet(); };
+  //initialize_bpf();
 }
 
 QPacketSniffer::~QPacketSniffer()
 {
+  std::cout << "closing bpf device" << std::endl;
   close(sock);
 }
 
@@ -56,22 +56,27 @@ void QPacketSniffer::open_bpf()
   }
   if (sock == -1)
     throw std::runtime_error("cannot open any bpf device");
+  std::cout << "socket: " << sock << std::endl;
 }
 
 void QPacketSniffer::initialize_interface()
 {
   memset(&interface, 0, sizeof(interface));
   strncpy(interface.ifr_name, interface_name.toUtf8().data(), interface_name.length());
+  if (ioctl(sock, BIOCSETIF, &interface) > 0)
+    throw std::runtime_error("cannot initialize interface `" + interface_name.toUtf8() + "`: " + QByteArray(strerror(errno)));
 }
 
 void QPacketSniffer::initialize_bpf()
 {
   bool success = true;
 
-  success = success && ioctl(sock, BIOCIMMEDIATE, &bpf_buffer_length) == -1;
-  success = success && ioctl(sock, BIOCGBLEN,     &bpf_buffer_length) == -1;
+  success = ioctl(sock, BIOCIMMEDIATE, &bpf_buffer_length) == -1;
   if (success == false)
-    throw std::runtime_error(strerror(errno));
+    throw std::runtime_error(QByteArray("cannot set BIOCIMMEDIATE on BPF device: ") + QByteArray(strerror(errno)));
+  success = ioctl(sock, BIOCGBLEN,     &bpf_buffer_length) == -1;
+  if (success == false)
+    throw std::runtime_error(QByteArray("cannot set BIOCGBLEN on BPF device: ") + QByteArray(strerror(errno)));
 }
 
 void QPacketSniffer::run()
@@ -93,6 +98,7 @@ void QPacketSniffer::bpf()
     memset(buffer, 0, bpf_buffer_length);
     if ((read_bytes = read(sock, buffer, bpf_buffer_length)) > 0)
     {
+      std::cout << "reading some motherfucking bytes" << std::endl;
       char* ptr = reinterpret_cast<char*>(buffer);
       while (ptr < (reinterpret_cast<char*>(buffer) + read_bytes))
       {
@@ -102,6 +108,11 @@ void QPacketSniffer::bpf()
         strncpy(packet.buffer, (const char*)bpf_packet + bpf_packet->bh_hdrlen, packet.length);
         append_packet(packet);
       }
+    }
+    else
+    {
+      std::cout << "Cannot read on BPF device: " << QByteArray(strerror(errno)).constData() << std::endl;
+      must_stop = true;
     }
   }
 }
