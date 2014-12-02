@@ -4,6 +4,7 @@ QAbstractPacketSniffer::QAbstractPacketSniffer(const QString& interface_name, QO
     QObject(parent), interface_name(interface_name)
 {
   max_captured_packets = 8;
+  captured_packets     = 0;
 }
 
 QVector<QPacket> QAbstractPacketSniffer::pullPendingPackets(QVector<QPacket> list)

@@ -20,6 +20,7 @@ void QUnixPacketSniffer::append_packet(const Packet& packet)
     case Packet::ARP:
       qpacket.ethernet_type = QPacket::ARP;
     }
+    qpacket.number      = ++captured_packets;
     qpacket.source      = packet.get_source_ip();
     qpacket.destination = packet.get_destination_ip();
     qpacket.protocol    = packet.get_protocol();

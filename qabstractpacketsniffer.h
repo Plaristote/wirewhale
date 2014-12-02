@@ -95,6 +95,7 @@ protected:
     QList<PacketFilter> filters;
     QMutex              pending_packets_mutex;
     short               max_captured_packets;
+    unsigned int        captured_packets;
 };
 
 #endif // QABSTRACTPACKETSNIFFER_H
