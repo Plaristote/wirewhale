@@ -63,7 +63,7 @@ void QSnifferThread::initializeSniffer()
   {
     number  = 0;
     sniffer = new QPacketSniffer(interface_, this);
-    sniffer->addFilter(filterPacketType(QPacketSniffer::Packet::ARP));
+    //sniffer->addFilter(filterPacketType(QPacketSniffer::Packet::ARP));
     connect(sniffer, SIGNAL(packetsReceived()), this, SIGNAL(packetReceived()));
   }
   catch (const std::runtime_error& e)
