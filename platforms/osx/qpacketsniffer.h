@@ -40,8 +40,13 @@ public:
     void wait();
     void stop();
 private:
-    void    initialize_sock_address();
-    void    initialize_protocol();
+    void    open_bpf();
+    void    initialize_bpf();
+    void    initialize_interface();
+    void    bpf();
+
+    int                  bpf_buffer_length;
+    struct ifreq         interface;
 
     struct sockaddr_ndrv sock_address;
     Poll                 poll;

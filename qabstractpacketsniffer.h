@@ -8,6 +8,8 @@
 #include "qpacket.h"
 #include <functional>
 
+#define MAX_PACKET_LENGTH 65535
+
 class QAbstractPacketSniffer : public QObject
 {
     Q_OBJECT
@@ -27,18 +29,21 @@ public:
 
       QByteArray data() const;
 
-      bool has_supported_type()        const;
-      bool has_ip_type()               const;
-      EtherType get_ether_type(void)   const;
-      QString get_source_ip(void)      const;
-      QString get_destination_ip(void) const;
-      QString get_protocol(void)       const;
+      bool has_supported_type()         const;
+      bool has_ip_type()                const;
+      EtherType get_ether_type(void)    const;
+      QString get_source_mac(void)      const;
+      QString get_destination_mac(void) const;
+      QString get_source_ip(void)       const;
+      QString get_destination_ip(void)  const;
+      QString get_protocol(void)        const;
 
       static size_t packet_offset_ip_header();
       static size_t packet_offset_xcp_header();
 
-      char                 buffer[65535];
+      char                 buffer[MAX_PACKET_LENGTH];
       struct ether_header* eth;
+      unsigned short       length;
 
       struct IpPacket {
         IpPacket(const Packet*);
@@ -95,6 +100,7 @@ protected:
     QList<PacketFilter> filters;
     QMutex              pending_packets_mutex;
     short               max_captured_packets;
+    unsigned int        captured_packets;
 };
 
 #endif // QABSTRACTPACKETSNIFFER_H

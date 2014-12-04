@@ -23,51 +23,62 @@
 #include <sys/types.h>
 #include <iostream>
 
+#include <net/bpf.h>
+#include <fcntl.h>
+
 #include <QThread>
 
-// http://www.lists.apple.com/archives/darwin-dev/2011/Jan/msg00049.html
+// http://bastian.rieck.ru/howtos/bpf/
 
 using namespace std;
 
 QPacketSniffer::QPacketSniffer(const QString& interface_name, QObject* parent) : QUnixPacketSniffer(interface_name, parent)
 {
-  sock = ::socket(PF_NDRV, SOCK_RAW, 0);
-  initialize_sock_address();
-  if ((::bind(sock, (struct sockaddr*)&sock_address, sizeof(sock_address))) == -1)
-    throw std::runtime_error("cannot bind socket for interface '" + interface_name.toStdString() + "': " + strerror(errno));
-  initialize_sock_address();
-  poll.on_event = [this](int) { capture_packet(); };
+  open_bpf();
+  initialize_interface();
+  initialize_bpf();
 }
 
 QPacketSniffer::~QPacketSniffer()
 {
+  std::cout << "closing bpf device" << std::endl;
   close(sock);
 }
 
-void QPacketSniffer::initialize_sock_address()
+void QPacketSniffer::open_bpf()
 {
-  int name_length = interface_name.length();
+  for (short i = 0 ; i < 99 ; ++i)
+  {
+    QByteArray device_path = "/dev/bpf" + QByteArray::number(i);
 
-  strncpy((char*)sock_address.snd_name, interface_name.toStdString().c_str(), name_length > IFNAMSIZ ? IFNAMSIZ : name_length);
-  sock_address.snd_name[name_length] = 0;
-  sock_address.snd_len    = sizeof(sock_address);
-  sock_address.snd_family = AF_NDRV;
+    if ((sock = open(device_path.constData(), O_RDWR)) != -1)
+      break ;
+  }
+  if (sock == -1)
+    throw std::runtime_error("cannot open any bpf device");
+  std::cout << "socket: " << sock << std::endl;
 }
 
-void QPacketSniffer::initialize_protocol()
+void QPacketSniffer::initialize_interface()
 {
-  struct ndrv_protocol_desc protocol_description;
-  struct ndrv_demux_desc    demux_description[1];
+  memset(&interface, 0, sizeof(interface));
+  strncpy(interface.ifr_name, interface_name.toUtf8().data(), interface_name.length());
+  if (ioctl(sock, BIOCSETIF, &interface) > 0)
+    throw std::runtime_error("cannot initialize interface `" + interface_name.toUtf8() + "`: " + QByteArray(strerror(errno)));
+}
 
-  protocol_description.version         = (u_int32_t)1;
-  protocol_description.protocol_family = (u_int32_t)13458;
-  protocol_description.demux_count     = 1;
-  protocol_description.demux_list      = (struct ndrv_demux_desc*)(&demux_description);
-  demux_description[0].type            = NDRV_DEMUXTYPE_ETHERTYPE;
-  demux_description[0].length          = 2;
-  demux_description[0].data.ether_type = htons(0x0f0f);
-  if ((setsockopt(sock, SOL_NDRVPROTO, NDRV_SETDMXSPEC, (caddr_t*)&protocol_description, sizeof(protocol_description))) == -1)
-    throw std::runtime_error("cannot initialize protocol for interface '" + interface_name.toStdString() + "': " + strerror(errno));
+void QPacketSniffer::initialize_bpf()
+{
+  bool success = true;
+
+  bpf_buffer_length = 1;
+  success = ioctl(sock, BIOCIMMEDIATE, &bpf_buffer_length) >= 0;
+  if (success == false)
+    throw std::runtime_error(QByteArray("cannot set BIOCIMMEDIATE on BPF device: ") + QByteArray(strerror(errno)));
+  success = ioctl(sock, BIOCGBLEN,     &bpf_buffer_length) >= 0;
+  if (success == false)
+    throw std::runtime_error(QByteArray("cannot set BIOCGBLEN on BPF device: ") + QByteArray(strerror(errno)));
+  std::cout << "bpf buffer length is " << bpf_buffer_length << std::endl;
 }
 
 void QPacketSniffer::run()
@@ -75,9 +86,37 @@ void QPacketSniffer::run()
   mutex.lock();
   sniffing_thread = QThread::currentThreadId();
   must_stop = false;
-  while (!must_stop)
-    poll.run();
+  bpf();
   mutex.unlock();
+}
+
+void QPacketSniffer::bpf()
+{
+  int read_bytes = 0;
+  struct bpf_hdr* buffer = new bpf_hdr[bpf_buffer_length];
+
+  while (!must_stop)
+  {
+    memset(buffer, 0, bpf_buffer_length);
+    if ((read_bytes = read(sock, buffer, bpf_buffer_length)) > 0)
+    {
+      char* ptr = reinterpret_cast<char*>(buffer);
+      while (ptr < (reinterpret_cast<char*>(buffer) + read_bytes))
+      {
+        Packet          packet;
+        struct bpf_hdr* bpf_packet = reinterpret_cast<struct bpf_hdr*>(ptr);
+
+        strncpy(packet.buffer, (const char*)bpf_packet + bpf_packet->bh_hdrlen, packet.length);
+        append_packet(packet);
+        ptr += BPF_WORDALIGN(bpf_packet->bh_hdrlen + bpf_packet->bh_caplen);
+      }
+    }
+    else
+    {
+      std::cout << "Cannot read on BPF device: " << QByteArray(strerror(errno)).constData() << std::endl;
+      must_stop = true;
+    }
+  }
 }
 
 void QPacketSniffer::wait()
