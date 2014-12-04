@@ -43,6 +43,9 @@ public:
       struct IpPacket {
         IpPacket(const Packet*);
 
+        QByteArray get_source_ip()      const;
+        QByteArray get_destination_ip() const;
+
         const Packet& packet;
         struct iphdr* ip;
       };

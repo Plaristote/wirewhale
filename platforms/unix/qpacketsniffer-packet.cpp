@@ -147,12 +147,7 @@ QPacketSniffer::Packet::EtherType QPacketSniffer::Packet::get_ether_type(void) c
 QString QPacketSniffer::Packet::get_source_ip(void) const
 {
   if (has_ip_type())
-  {
-    char ip_string[16];
-
-    inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
-    return ip_string;
-  }
+    return IpPacket(this).get_source_ip();
   else if (get_ether_type() == ARP)
     return ArpPacket(this).get_source_ip();
   return "";
@@ -215,15 +210,27 @@ QPacketSniffer::Packet::IpPacket::IpPacket(const Packet* packet) : packet(*packe
   ip = (struct iphdr*)(packet->buffer + Packet::packet_offset_ip_header());
 }
 
+QByteArray QPacketSniffer::Packet::IpPacket::get_source_ip() const
+{
+  char ip_string[16];
+
+  inet_ntop(AF_INET, &ip->saddr, ip_string, 16);
+  return ip_string;
+}
+
+QByteArray QPacketSniffer::Packet::IpPacket::get_destination_ip() const
+{
+  char ip_string[16];
+
+  inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
+  return ip_string;
+}
+
+
 QString QPacketSniffer::Packet::get_destination_ip(void) const
 {
   if (has_ip_type())
-  {
-      char ip_string[16];
-
-    inet_ntop(AF_INET, &ip->daddr, ip_string, 16);
-    return ip_string;
-  }
+    return Packet::IpPacket(this).get_destination_ip();
   else if (get_ether_type() == ARP)
     return Packet::ArpPacket(this).get_destination_ip();
   return "";
