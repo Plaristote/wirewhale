@@ -12,7 +12,7 @@
 # include <linux/tcp.h>
 # include <linux/udp.h>
 # include <linux/icmp.h>
-# include <linux/if_arp.h>
+# include <netinet/ether.h>
 #elif defined(__APPLE__)
 # include <net/if_arp.h>
 #endif
@@ -132,6 +132,11 @@ QByteArray arpOperationCodeToString(short opCode)
 
 QByteArray QPacketSniffer::Packet::data() const
 {
+  QByteArray str;
+
+  str += QByteArray("# Mac Addresses\n");
+  str += QByteArray("Sender: ") + get_source_mac() + '\n';
+  str += QByteArray("Dest:   ") + get_destination_mac() + "\n\n";
   if (has_ip_type())
   {
     if (ip->protocol == IPPROTO_TCP)
@@ -140,7 +145,7 @@ QByteArray QPacketSniffer::Packet::data() const
       const char*    payload  = (const char*)((unsigned char*)(tcp) + (tcp->doff * 4));
       size_t         max_size = (buffer + ip->tot_len - payload) / sizeof(char);
 
-      return QByteArray(payload, max_size);
+      str += QByteArray(payload, max_size);
     }
     else if (ip->protocol == IPPROTO_UDP)
     {
@@ -148,7 +153,7 @@ QByteArray QPacketSniffer::Packet::data() const
       const char*    payload  = (const char*)((unsigned char*)(udp) + sizeof(struct udphdr));
       size_t         max_size = udp->len;
 
-      return QByteArray(payload, max_size);
+      str += QByteArray(payload, max_size);
     }
     else if (ip->protocol == IPPROTO_ICMP)
     {
@@ -163,9 +168,9 @@ QByteArray QPacketSniffer::Packet::data() const
     body += "Length Hardware Address: " + QString::number(arp->ar_hln) + '\n';
     body += "Length Protocol Address: " + QString::number(arp->ar_pln) + '\n';
     body += "Operation Code: " + arpOperationCodeToString(arp->ar_op);
-    return body.toLatin1();
+    str +=  body.toLatin1();
   }
-  return "";
+  return str;
 }
 
 
@@ -187,27 +192,14 @@ QPacketSniffer::Packet::EtherType QPacketSniffer::Packet::get_ether_type(void) c
   return (EtherType)(ntohs(eth->ether_type));
 }
 
-QByteArray mac_address_to_string(u_char* ether_host)
-{
-  QByteArray mac_address;
-
-  for (char i = 0 ; i < ETHER_ADDR_LEN ; ++i)
-  {
-    mac_address += QByteArray::number(ether_host[i]).toHex();
-    if (i % 2 == 0)
-      mac_address += ':';
-  }
-  return mac_address;
-}
-
 QString QPacketSniffer::Packet::get_source_mac(void) const
 {
-  return mac_address_to_string(eth->ether_shost);
+  return ether_ntoa((struct ether_addr*)(eth->ether_shost));
 }
 
 QString QPacketSniffer::Packet::get_destination_mac(void) const
 {
-  return mac_address_to_string(eth->ether_dhost);
+  return ether_ntoa((struct ether_addr*)(eth->ether_dhost));
 }
 
 QString QPacketSniffer::Packet::get_source_ip(void) const
